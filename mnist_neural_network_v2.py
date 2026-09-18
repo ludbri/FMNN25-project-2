@@ -84,65 +84,63 @@ class NeuralNetwork:
         _, outputs = self.forward(inputs)
         return outputs.index(max(outputs))
 
-    def train(self, inputs, targets):
-        """Train the network on one example using backpropagation."""
-        hidden_outputs, final_outputs = self.forward(inputs)
-
-        # Output layer error
-        output_errors = [
-            targets[o] - final_outputs[o]
-            for o in range(self.output_size)
-        ]
-
-        # Output layer gradients
-        output_gradients = [
-            output_errors[o] * self.sigmoid_derivative(final_outputs[o])
-            for o in range(self.output_size)
-        ]
-
-        # Propagate error to hidden layer
-        hidden_errors = []
-        for h in range(self.hidden_size):
-            error = 0.0
-            for o in range(self.output_size):
-                error += (
-                    self.weights_hidden_output[o][h]
-                    * output_gradients[o]
-                )
-            hidden_errors.append(error)
-
-        # Hidden layer gradients
-        hidden_gradients = [
-            hidden_errors[h] * self.sigmoid_derivative(hidden_outputs[h])
-            for h in range(self.hidden_size)
-        ]
-
-        # Update Hidden -> Output weights
-        for o in range(self.output_size):
+    def train(self, mini_batch):
+        """Train the network on a list of (image, target) tuples."""
+        batch_size = len(mini_batch)
+        
+        # Initialize gradient accumulators with zeros
+        nabla_w_ih = [[0.0] * self.input_size for _ in range(self.hidden_size)]
+        nabla_b_h = [0.0] * self.hidden_size
+        nabla_w_ho = [[0.0] * self.hidden_size for _ in range(self.output_size)]
+        nabla_b_o = [0.0] * self.output_size
+        
+        # Accumulate gradients for each image in the batch
+        for inputs, targets in mini_batch:
+            hidden_outputs, final_outputs = self.forward(inputs)
+            
+            # Output layer errors and gradients
+            output_errors = [targets[o] - final_outputs[o] for o in range(self.output_size)]
+            output_gradients = [
+                output_errors[o] * self.sigmoid_derivative(final_outputs[o])
+                for o in range(self.output_size)
+            ]
+            
+            # Hidden layer errors and gradients
+            hidden_errors = []
             for h in range(self.hidden_size):
-                self.weights_hidden_output[o][h] += (
-                    self.learning_rate
-                    * output_gradients[o]
-                    * hidden_outputs[h]
-                )
+                error = 0.0
+                for o in range(self.output_size):
+                    error += self.weights_hidden_output[o][h] * output_gradients[o]
+                hidden_errors.append(error)
+                
+            hidden_gradients = [
+                hidden_errors[h] * self.sigmoid_derivative(hidden_outputs[h])
+                for h in range(self.hidden_size)
+            ]
+            
+            # Add current image's gradients to the accumulators
+            for o in range(self.output_size):
+                nabla_b_o[o] += output_gradients[o]
+                for h in range(self.hidden_size):
+                    nabla_w_ho[o][h] += output_gradients[o] * hidden_outputs[h]
+                    
+            for h in range(self.hidden_size):
+                nabla_b_h[h] += hidden_gradients[h]
+                for i in range(self.input_size):
+                    nabla_w_ih[h][i] += hidden_gradients[h] * inputs[i]
 
-        # Update output biases
+        # Apply averaged updates to weights
+        effective_lr = self.learning_rate / batch_size
+        
         for o in range(self.output_size):
-            self.bias_output[o] += self.learning_rate * output_gradients[o]
-
-        # Update Input -> Hidden weights
+            self.bias_output[o] += effective_lr * nabla_b_o[o]
+            for h in range(self.hidden_size):
+                self.weights_hidden_output[o][h] += effective_lr * nabla_w_ho[o][h]
+                
         for h in range(self.hidden_size):
+            self.bias_hidden[h] += effective_lr * nabla_b_h[h]
             for i in range(self.input_size):
-                self.weights_input_hidden[h][i] += (
-                    self.learning_rate
-                    * hidden_gradients[h]
-                    * inputs[i]
-                )
-
-        # Update hidden biases
-        for h in range(self.hidden_size):
-            self.bias_hidden[h] += self.learning_rate * hidden_gradients[h]
-
+                self.weights_input_hidden[h][i] += effective_lr * nabla_w_ih[h][i]
 
 # def load_mnist(filename):
 #     """
@@ -186,7 +184,7 @@ def evaluate(network, dataset, limit=None):
     return correct, limit
 
 
-def train_network(network, training_data, validation_data,
+def train_network(network, training_data, validation_data, mini_batch_size=10,
                   epochs=3, training_limit=10000, validation_limit=1000):
     """Train on a subset and report validation accuracy after each epoch."""
     images, labels = training_data
@@ -197,16 +195,26 @@ def train_network(network, training_data, validation_data,
 
     for epoch in range(epochs):
         random.shuffle(indices)
+        
+        # Slice the shuffled indices into chunks of size `mini_batch_size`
+        mini_batches = [
+            indices[k : k + mini_batch_size]
+            for k in range(0, training_limit, mini_batch_size)
+        ]
 
-        for count, index in enumerate(indices, start=1):
-            image = images[index]
-            label = int(labels[index])
-            network.train(image, one_hot(label))
+        for count, batch_indices in enumerate(mini_batches, start=1):
+            mini_batch = [
+                (images[idx], one_hot(int(labels[idx])))
+                for idx in batch_indices
+            ]
+            
+            network.train(mini_batch)
 
-            if count % 500 == 0:
+            if count % max(1, (500 // mini_batch_size)) == 0:
+                processed_examples = min(count * mini_batch_size, training_limit)
                 print(
                     f"  Epoch {epoch + 1}/{epochs}: "
-                    f"{count}/{training_limit} examples"
+                    f"Processed {processed_examples}/{training_limit} examples"
                 )
 
         print(f"Epoch {epoch + 1}/{epochs} completed.")
@@ -239,7 +247,7 @@ if __name__ == "__main__":
     # 10 outputs = digits 0..9
     network = NeuralNetwork(
         input_size=784,
-        hidden_size=30,
+        hidden_size=100,
         output_size=10,
         learning_rate=3.0
     )
