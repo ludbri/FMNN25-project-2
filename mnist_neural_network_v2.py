@@ -19,6 +19,8 @@ class NeuralNetwork:
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.learning_rate = learning_rate
+        
+        self.c = 1 / learning_rate
 
         # Weights: Input -> Hidden
         self.weights_input_hidden = np.random.uniform(
@@ -68,48 +70,49 @@ class NeuralNetwork:
         _, outputs = self.forward(inputs)
         return int(np.argmax(outputs))
 
-    def train(self, mini_batch):
-        '''Train the network on a list of (image, target) tuples using SGD and mini-batch'''
-        
-        batch_size = len(mini_batch)
-        
-        # Initialize gradient accumulators with zeros
-        nabla_w_ih = np.zeros(self.weights_input_hidden.shape)
-        nabla_b_h = np.zeros(self.bias_hidden.shape)
-        nabla_w_ho = np.zeros(self.weights_hidden_output.shape)
-        nabla_b_o = np.zeros(self.bias_output.shape)
-        
-        # Accumulate gradients of each image in batch
-        for inputs, targets in mini_batch:
-            x = np.array(inputs).reshape(-1, 1)
-            y = np.array(targets).reshape(-1, 1)
-            hidden_outputs, final_outputs = self.forward(inputs)
-            
-            # output layer error and gradients
-            output_errors = y - final_outputs # error
-            
-            output_gradients = output_errors * self.sigmoid_derivative(final_outputs) # gradient
-            
-            # hidden layer error and gradients
-            hidden_errors = np.dot(self.weights_hidden_output.T, output_gradients) # error
-                
-            hidden_gradients = hidden_errors * self.sigmoid_derivative(hidden_outputs) # gradient
-            
-            # add image gradient to accumalators
-            nabla_b_o += output_gradients
-            nabla_w_ho += np.dot(output_gradients, hidden_outputs.T)
+     # Train one mini-batch using backpropagation
+    def train(self, mini_batch, j):
+         batch_size = len(mini_batch)
+         
+         grad_w_ih = np.zeros_like(self.weights_input_hidden)
+         grad_b_h = np.zeros_like(self.bias_hidden)
+         grad_w_ho = np.zeros_like(self.weights_hidden_output)
+         grad_b_o = np.zeros_like(self.bias_output)
 
-            nabla_b_h += hidden_gradients
-            nabla_w_ih += np.dot(hidden_gradients, x.T)
-        
-        # apply average updates to weights
-        effective_lr = self.learning_rate / batch_size
-        
-        self.weights_hidden_output += effective_lr * nabla_w_ho
-        self.bias_output += effective_lr * nabla_b_o
+         batch_loss = 0.0
 
-        self.weights_input_hidden += effective_lr * nabla_w_ih
-        self.bias_hidden += effective_lr * nabla_b_h
+         for inputs, targets in mini_batch:
+             x = np.asarray(inputs).reshape(-1, 1)
+             y = np.asarray(targets).reshape(-1, 1)
+
+             hidden, output = self.forward(x)
+
+             # Mean Squared Error, used here only to monitor training
+             batch_loss += np.mean((y - output) ** 2)
+
+             # Output error and gradient
+             output_error = y - output
+             output_gradient = output_error * self.sigmoid_derivative(output)
+
+             # Hidden error and gradient
+             hidden_error = self.weights_hidden_output.T @ output_gradient
+             hidden_gradient = hidden_error * self.sigmoid_derivative(hidden)
+
+             # Accumulate gradients
+             grad_b_o += output_gradient
+             grad_w_ho += output_gradient @ hidden.T
+             grad_b_h += hidden_gradient
+             grad_w_ih += hidden_gradient @ x.T
+
+         # Average gradient over the mini-batch
+         lr = 1/ (self.c * (j + 1) * batch_size)
+
+         self.weights_hidden_output += lr * grad_w_ho
+         self.bias_output += lr * grad_b_o
+         self.weights_input_hidden += lr * grad_w_ih
+         self.bias_hidden += lr * grad_b_h
+
+         return batch_loss / batch_size
 
 # def load_mnist(filename):
 #     """
@@ -180,7 +183,7 @@ def train_network(network, training_data, validation_data, mini_batch_size = 10,
             ]
             
             # send chunk to be processed at once
-            network.train(mini_batch)
+            network.train(mini_batch, j = epoch)
 
             if count % max(1, (500 // mini_batch_size)) == 0:
                 processed_examples = min(count * mini_batch_size, training_limit)
