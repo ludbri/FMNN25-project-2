@@ -70,6 +70,16 @@ class NeuralNetwork:
         _, outputs = self.forward(inputs)
         return int(np.argmax(outputs))
 
+    def loss_function(self, exact_points:np.array, prediction:np.array):
+        '''Calculates the quadratic loss function, taking in the predicted values and 
+        the exact values as arrays. 
+        
+        Returns a flow'''
+        
+        loss= (1/2)*np.mean((exact_points - prediction) ** 2)
+        
+        return loss
+
      # Train one mini-batch using backpropagation
     def train(self, mini_batch, j):
          batch_size = len(mini_batch)
@@ -88,7 +98,7 @@ class NeuralNetwork:
              hidden, output = self.forward(x)
 
              # Mean Squared Error, used here only to monitor training
-             batch_loss += np.mean((y - output) ** 2)
+             batch_loss += self.loss_function(y, output)
 
              # Output error and gradient
              output_error = y - output
