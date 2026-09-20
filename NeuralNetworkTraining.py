@@ -90,10 +90,10 @@ def train_network(network, training_data, validation_data,
         history["loss"].append(average_loss)
         history["validation_accuracy"].append(validation_accuracy)
 
-        print(f"Epoch {epoch + 1}/{epochs} completed.")
-        print(f"  Loss: {average_loss:.6f}")
-        print(f"  Validation accuracy: {validation_accuracy:.2f}%")
-        print()
+        #print(f"Epoch {epoch + 1}/{epochs} completed.")
+        #print(f"  Loss: {average_loss:.6f}")
+        #print(f"  Validation accuracy: {validation_accuracy:.2f}%")
+        #print()
 
     return history
 

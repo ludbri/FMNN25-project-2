@@ -96,8 +96,8 @@ if __name__ == "__main__":
             validation_limit=1000
         )
 
-        Plotting.plot_batch_accuracy(results)
-        Plotting.plot_batch_time(results)
+        plotting.plot_batch_accuracy(results)
+        plotting.plot_batch_time(results)
         
         print("\n" + "=" * 60)
         print("SUMMARY")
@@ -116,8 +116,8 @@ if __name__ == "__main__":
         
     # Graphs for standard run
         print("\nCreating accuracy graph...")
-        Plotting.plot_validation_accuracy(standard_history)
+        plotting.plot_validation_accuracy(standard_history)
     
     if plotting_loss:
         print("\nCreating loss graph...")
-        Plotting.plot_loss(standard_history)
+        plotting.plot_loss(standard_history)
