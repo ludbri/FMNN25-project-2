@@ -15,6 +15,6 @@ testing_mini_batch_sizes - function for testing mini-batch size
 
 Left to do:
 - Proper documentation
-- task 7
+- task 7 - wait til Tuesday bc quite unclear what the task is from just the lecture notes.
 - task 8
 - Fine-tuning
