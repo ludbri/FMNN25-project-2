@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
-
 import pickle
 from NeuralNetwork import NeuralNetwork
 import NeuralNetworkTraining
-import plotting
+import Plotting
 import testing_mini_batch_sizes
 import numpy as np
 import random
+from dataloading import load_mnist
+import parameters
 
 testing_mini_batch = False
 plotting_accuracy = False
@@ -29,13 +29,6 @@ mini_batch_size_tuple = (1, 2) #best 1
 learning_rate_tuple = tuple(np.arange(3, 5, 0.1)) #best 4.9
 
 
-
-def load_mnist(filename):
-    with open(filename, "rb") as f:
-        training_data, validation_data, test_data = pickle.load(f, encoding="latin1")
-        
-    
-    return training_data, validation_data, test_data
 
 def extract_first_x(training_data:tuple, x:int):
     ''' 
@@ -79,9 +72,9 @@ if __name__ == "__main__":
                 for epochs in epochs_tuple:
     
                     network = NeuralNetwork(
-                        input_size=784,
+                        input_size=parameters.INPUT_SIZE,
                         hidden_size=hidden_size,
-                        output_size=10,
+                        output_size=parameters.N_CLASSES,
                         learning_rate=learning_rate
                     )
         
@@ -93,7 +86,7 @@ if __name__ == "__main__":
                         network,
                         training_data,
                         validation_data,
-                        mini_batch_size = mini_batch_size,
+                        minibatch_size = mini_batch_size,
                         epochs=epochs,
                         training_limit=training_limit,
                         validation_limit=validation_limit

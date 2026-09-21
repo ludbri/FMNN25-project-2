@@ -1,9 +1,10 @@
 import pickle
 from NeuralNetwork import NeuralNetwork
 import NeuralNetworkTraining
-import plotting
+import Plotting
 import testing_mini_batch_sizes
-
+from dataloading import load_mnist
+import parameters
 
 testing_mini_batch = False
 plotting_accuracy = False
@@ -15,10 +16,9 @@ training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
 
-def load_mnist(filename):
-    with open(filename, "rb") as f:
-        training_data, validation_data, test_data = pickle.load(f, encoding="latin1")
-    return training_data, validation_data, test_data
+# Set global parameters
+parameters.N_CLASSES = 10
+parameters.INPUT_SIZE = 784
 
 
 if __name__ == "__main__":
@@ -43,9 +43,9 @@ if __name__ == "__main__":
     print("=" * 60)
 
     network = NeuralNetwork(
-        input_size=784,
+        input_size=parameters.INPUT_SIZE,
         hidden_size=30,
-        output_size=10,
+        output_size=parameters.N_CLASSES,
         learning_rate=3
     )
     
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     print()
     print("Correct:", correct)
     print("Total:", total)
-    print(f"Accuracy: {accuracy:.2f}%")# -*- coding: utf-8 -*-
+    print(f"Accuracy: {accuracy:.2f}%")
     
     
 
@@ -96,8 +96,8 @@ if __name__ == "__main__":
             validation_limit=1000
         )
 
-        plotting.plot_batch_accuracy(results)
-        plotting.plot_batch_time(results)
+        Plotting.plot_batch_accuracy(results)
+        Plotting.plot_batch_time(results)
         
         print("\n" + "=" * 60)
         print("SUMMARY")
@@ -116,8 +116,8 @@ if __name__ == "__main__":
         
     # Graphs for standard run
         print("\nCreating accuracy graph...")
-        plotting.plot_validation_accuracy(standard_history)
+        Plotting.plot_validation_accuracy(standard_history)
     
     if plotting_loss:
         print("\nCreating loss graph...")
-        plotting.plot_loss(standard_history)
+        Plotting.plot_loss(standard_history)

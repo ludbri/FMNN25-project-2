@@ -1,1 +1,158 @@
-import numpy as npclass NeuralNetwork:    # 3-layer network: INPUT -> HIDDEN -> OUTPUT    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.3):        self.input_size = input_size        self.hidden_size = hidden_size        self.output_size = output_size        self.learning_rate = learning_rate                self.c = 1 / learning_rate        # Weights and biases        self.weights_input_hidden = np.random.uniform(-0.5, 0.5, (hidden_size, input_size))        self.bias_hidden = np.random.uniform(-0.5, 0.5, (hidden_size, 1))        self.weights_hidden_output = np.random.uniform(-0.5, 0.5, (output_size, hidden_size))        self.bias_output = np.random.uniform(-0.5, 0.5, (output_size, 1))    # Sigmoid activation function    def sigmoid(self, x):        z = np.clip(x, -700, 700)        return 1.0 / (1.0 + np.exp(-z))    # Derivative of sigmoid    def sigmoid_derivative(self, output):        return output * (1.0 - output)    # Forward propagation    def forward(self, inputs):        x = np.asarray(inputs).reshape(-1, 1)        if x.shape[0] != self.input_size:            raise ValueError(f"Expected {self.input_size} inputs, received {x.shape[0]}.")        hidden = self.sigmoid(self.weights_input_hidden @ x + self.bias_hidden)        output = self.sigmoid(self.weights_hidden_output @ hidden + self.bias_output)        return hidden, output    # Prediction: output neuron with largest activation    def predict(self, inputs):        _, outputs = self.forward(inputs)        return int(np.argmax(outputs))        def loss_function(self, exact_points:np.array, prediction:np.array):        '''Calculates the quadratic loss function, taking in the predicted values and         the exact values as arrays.                 Returns a flow'''                loss= (1/2)*np.mean((exact_points - prediction) ** 2)                return loss    # Train one mini-batch using backpropagation    def train(self, mini_batch, j):        batch_size = len(mini_batch)        grad_w_ih = np.zeros_like(self.weights_input_hidden)        grad_b_h = np.zeros_like(self.bias_hidden)        grad_w_ho = np.zeros_like(self.weights_hidden_output)        grad_b_o = np.zeros_like(self.bias_output)        batch_loss = 0.0        for inputs, targets in mini_batch:            x = np.asarray(inputs).reshape(-1, 1)            y = np.asarray(targets).reshape(-1, 1)            hidden, output = self.forward(x)            # Mean Squared Error, used here only to monitor training            batch_loss += self.loss_function(y, output)            # Output error and gradient            output_error = y - output            output_gradient = output_error * self.sigmoid_derivative(output)            # Hidden error and gradient            hidden_error = self.weights_hidden_output.T @ output_gradient            hidden_gradient = hidden_error * self.sigmoid_derivative(hidden)            # Accumulate gradients            grad_b_o += output_gradient            grad_w_ho += output_gradient @ hidden.T            grad_b_h += hidden_gradient            grad_w_ih += hidden_gradient @ x.T        # Average gradient over the mini-batch        lr = 1/ (self.c * (j + 1) * batch_size)        self.weights_hidden_output += lr * grad_w_ho        self.bias_output += lr * grad_b_o        self.weights_input_hidden += lr * grad_w_ih        self.bias_hidden += lr * grad_b_h        return batch_loss / batch_size
+import numpy as np
+
+
+class NeuralNetwork:
+    # 3-layer network: INPUT -> HIDDEN -> OUTPUT
+    def __init__(self, 
+                 input_size: int,
+                 hidden_size: int,
+                 output_size: int,
+                 learning_rate: float = 0.3):
+        """
+        TODO: documentation
+        """
+        # TODO: arbitrary layer counts
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.learning_rate = learning_rate
+
+        # Weights and biases
+        self.weights_input_hidden = np.random.uniform(-0.5, 0.5, (hidden_size, input_size))
+        self.bias_hidden = np.random.uniform(-0.5, 0.5, (hidden_size, 1))
+        self.weights_hidden_output = np.random.uniform(-0.5, 0.5, (output_size, hidden_size))
+        self.bias_output = np.random.uniform(-0.5, 0.5, (output_size, 1))
+
+    # Sigmoid activation function
+    def sigmoid(self, x: np.array) -> np.array:
+        """
+        TODO: documentation
+        """
+        z = np.clip(x, -700, 700)
+        return 1.0 / (1.0 + np.exp(-z))
+
+    # Derivative of sigmoid
+    def sigmoid_derivative(self, output: np.array) -> np.array:
+        """
+        TODO: documentation
+        """
+        return output * (1.0 - output)
+
+    # Forward propagation
+    def forward(self, x: np.array) -> tuple[np.array, np.array]:
+        """
+        Passes a set of inputs through the network.
+        
+        x:
+            is a input_size x n matrix of n samples.
+
+        return:
+            the output activations of the hidden and output layer neurons
+        """
+        x = np.asarray(x)
+        if x.shape[0] != self.input_size:
+            raise ValueError(f"Expected {self.input_size} input size, received {x.shape[0]}.")
+
+        hidden = self.sigmoid(self.weights_input_hidden @ x + self.bias_hidden)
+        output = self.sigmoid(self.weights_hidden_output @ hidden + self.bias_output)
+        return hidden, output
+
+
+    # Prediction: output neuron with largest activation
+    def predict(self, x: np.array) -> np.array:
+        """
+        Passes a set of inputs through the network returning the predicted classifications.
+        
+        x:
+            is a n x input_size matrix of n samples.
+
+        return:
+            a n array with indices of the output node with the largest activation for each input sample.
+        """
+        x = np.asarray(x)
+        if x.shape[1] != self.input_size:
+            raise ValueError(f"Expected {self.input_size} input size, received {x.shape[1]}.")
+        
+        _, outputs = self.forward(x.T)
+        return np.argmax(outputs, axis=0)
+    
+    
+    def square_loss(self,
+                    y_pred: np.array,
+                    y_true: np.array) -> float:
+        """
+        Calculates the quadratic loss function, taking in the predicted values and 
+        the exact values as arrays. 
+
+        the inputs are output_size x n matrices of n samples.
+        
+        Returns the L2-norm
+        """
+        loss = (y_pred - y_true) ** 2
+        loss = np.sum(loss, axis=0)
+        loss = np.mean(loss) / 2
+        return loss
+
+
+    # Train one mini-batch using backpropagation
+    def train_batch(self, 
+                    x: np.array, 
+                    y_true: np.array, 
+                    learning_rate: float) -> float:
+        """
+        Trains the network on one batch of data.
+
+        x:
+            a n x input_size matrix of n samples.
+
+        y:
+            a n x output_size matrix of the one-hot encoded true classes of each sample.
+
+        learning_rate:
+            external learning rate, is divided by the internal self.learning_rate coefficient.
+
+        Returns the sample-average loss on the batch before adjusting weights.
+        """
+        # Transpose s.t. each column is a sample
+        x = np.asarray(x).reshape(-1, self.input_size).T
+        y_true = np.asarray(y_true).reshape(-1, self.output_size).T
+
+        hidden_activation, output_activation = self.forward(x)
+
+        # Mean Squared Error, used here only to monitor training
+        batch_loss = self.square_loss(output_activation, y_true)
+
+        ## Output error and partial gradients
+        # loss = (output - y_true) ** 2 = output**2 - 2*output*y_true + y_true**2
+        # gradient = 2 * (output - y_true)
+        # gradient of loss w.r.t. $o_T$  (output of final layer)
+        output_o_gradient = y_true - output_activation  # Note! Negative gradient!
+        # gradient w.r.t. $a_T$  (input of final layer)
+        output_i_gradient = output_o_gradient * self.sigmoid_derivative(output_activation)
+        # Hidden error and gradient
+        # gradient of loss w.r.t. $o_{T-1}$  (output of hidden layer)
+        hidden_o_gradient = self.weights_hidden_output.T @ output_i_gradient
+        # gradient of loss w.r.t. $a_T$   (input of hidden layer)
+        hidden_i_gradient = hidden_o_gradient * self.sigmoid_derivative(hidden_activation)
+
+        # # Gradients of weights and biases:
+        # average gradient w.r.t. $b_T$ - bias terms
+        grad_b_o = output_i_gradient.mean(axis=1, keepdims=True)
+        # average gradient w.r.t. $w_T$ - weight terms
+        grad_w_ho = (output_i_gradient @ hidden_activation.T)
+
+        # average gradient w.r.t. $b_{T-1}$ - bias terms
+        grad_b_h = hidden_i_gradient.mean(axis=1, keepdims=True)
+        # average gradient w.r.t. $w_{T-1}$ - weight terms
+        grad_w_ih = (hidden_i_gradient @ x.T)
+
+        # Learning rate
+        lr = learning_rate / self.learning_rate
+
+        # adjust weights
+        self.weights_hidden_output += lr * grad_w_ho
+        self.bias_output += lr * grad_b_o
+        self.weights_input_hidden += lr * grad_w_ih
+        self.bias_hidden += lr * grad_b_h
+
+        return batch_loss

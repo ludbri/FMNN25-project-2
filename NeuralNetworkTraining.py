@@ -1,52 +1,41 @@
-import random
-    
-    
-# def load_mnist(filename):
-#     """
-#     Load the supplied mnist.pkl.gz file.
-#     Each split has the form: (images, labels).
-#     """
-#     with gzip.open(filename, "rb") as f:
-#         training_data, validation_data, test_data = pickle.load(
-#             f, encoding="latin1"
-#         )
-#     return training_data, validation_data, test_data
-
- 
-def one_hot(label):
-    """Convert digit 0..9 to a 10-element one-hot vector."""
-    target = [0.0] * 10
-    target[int(label)] = 1.0
-    return target
+import numpy as np
+from dataloading import minibatches, Dataset
+from NeuralNetwork import NeuralNetwork
 
 
-def evaluate(network, dataset, limit=None):
-    """Return (number_correct, number_tested)."""
-    images, labels = dataset
+def evaluate(network: NeuralNetwork,
+             dataset: Dataset,
+             limit: int = None)-> tuple[int, int]:
+    """
+    TODO: documentation
+    Return (number_correct, number_tested).
+    """
+    images, y_true = dataset
     if limit is None:
         limit = len(images)
     else:
         limit = min(limit, len(images))
 
-    correct = 0
-    for index in range(limit):
-        image = images[index]
-        label = int(labels[index])
-        if network.predict(image) == label:
-            correct += 1
+    y_pred = network.predict(images[:limit])
+    correct = np.sum(np.equal(y_pred, y_true[:limit]))
 
     return correct, limit
 
+HistoryDict = dict[str,list[int|float]]
 
-def train_network(network, training_data, validation_data,
-                  mini_batch_size=10, epochs=3,
-                  training_limit=10000, validation_limit=1000):
+def train_network(network: NeuralNetwork,
+                  training_data: Dataset,
+                  validation_data: Dataset,
+                  minibatch_size: int =10,
+                  epochs: int =3,
+                  training_limit: int = 10000, 
+                  validation_limit: int = 1000) -> HistoryDict:
+    """
+    TODO: documentation
+    """
     # Save metrics for plots
-    images, labels = training_data
-    training_limit = min(training_limit, len(images))
+    training_limit = min(training_limit, len(training_data[0]))
     validation_limit = min(validation_limit, len(validation_data[0]))
-
-    indices = list(range(training_limit))
 
     history = {
         "epochs": [],
@@ -55,25 +44,24 @@ def train_network(network, training_data, validation_data,
     }
     global_step = 0
 
+    # TODO: use tqdm
     for epoch in range(epochs):
-        random.shuffle(indices)
-
         total_loss = 0.0
         batches = 0
+        processed = 0  # images processed for learning
+        lr = 1/ (epoch + 1)
 
-        for start in range(0, training_limit, mini_batch_size):
-            batch_indices = indices[start:start + mini_batch_size]
+        for x, y_onehot in minibatches(training_data, 
+                                       batch_size=minibatch_size, 
+                                       n=training_limit, 
+                                       one_hot=True, 
+                                       shuffle=True):
+            total_loss += network.train_batch(x, y_onehot, learning_rate = lr)
 
-            mini_batch = [
-                (images[i], one_hot(labels[i]))
-                for i in batch_indices
-            ]
-
-            total_loss += network.train(mini_batch, j = epoch) # j resets after each epoch, is that what we want?
             global_step += 1
             batches += 1
 
-            processed = min(start + mini_batch_size, training_limit)
+            processed += x.shape[0]
             if processed % 1000 == 0:
                 print(f"  Epoch {epoch + 1}/{epochs}: {processed}/{training_limit} examples")
 

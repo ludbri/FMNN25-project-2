@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 from NeuralNetwork import NeuralNetwork
 import time
 import NeuralNetworkTraining
+import parameters
 
 # ============================================================
 # EXPERIMENT: DIFFERENT MINI-BATCH SIZES
@@ -20,9 +20,9 @@ def compare_mini_batch_sizes(training_data, validation_data,
 
         # Fresh network for a fair separate experiment
         network = NeuralNetwork(
-            input_size=784,
+            input_size=parameters.INPUT_SIZE,
             hidden_size=30,
-            output_size=10,
+            output_size=parameters.N_CLASSES,
             learning_rate=0.3
         )
 
@@ -32,7 +32,7 @@ def compare_mini_batch_sizes(training_data, validation_data,
             network,
             training_data,
             validation_data,
-            mini_batch_size=batch_size,
+            minibatch_size=batch_size,
             epochs=epochs,
             training_limit=training_limit,
             validation_limit=validation_limit

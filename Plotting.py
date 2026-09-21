@@ -1,5 +1,12 @@
 import matplotlib.pyplot as plt
 
+
+# ============================================================
+# Plot a minibatch
+# ============================================================
+# TODO present a minibatch (and predictions)
+
+
 # ============================================================
 # GRAPH 1: VALIDATION ACCURACY VS EPOCH
 # ============================================================
@@ -72,4 +79,17 @@ def plot_batch_time(results):
     plt.tight_layout()
     plt.savefig("mini_batch_vs_time.png", dpi=150)
     plt.show()
+
+
+# ============================================================
+# GRAPH 5: Confusion Matrix
+# ============================================================
+
+def confusion_matrix(results):
+    """
+    Plot the confusion matrix - y axis is the true class, x axis is the prediction. 
+    Each row is normalized to 1.
+    """
+    # TODO: implement and plot confusion matrix
+    ...
 
