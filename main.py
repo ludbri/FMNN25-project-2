@@ -1,5 +1,4 @@
-import pickle
-from NeuralNetwork import NeuralNetwork
+from NeuralNetwork import NeuralNetwork, ActivationFuncs
 import NeuralNetworkTraining
 import Plotting
 import testing_mini_batch_sizes
@@ -46,6 +45,7 @@ if __name__ == "__main__":
         input_size=parameters.INPUT_SIZE,
         hidden_size=30,
         output_size=parameters.N_CLASSES,
+        activation_func=ActivationFuncs.SIGMOID,  # TODO: relu is not working right.
         learning_rate=3
     )
     

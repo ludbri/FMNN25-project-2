@@ -1,4 +1,62 @@
 import numpy as np
+from enum import IntEnum, auto
+
+
+class ActivationFuncs(IntEnum):
+    SIGMOID = auto()
+    RELU = auto()
+
+# Sigmoid activation function
+def sigmoid(x: np.array) -> np.array:
+    """
+    Sigmoid activation function, element-by-element.
+
+    x:
+        input matrix
+
+    return:
+        output activations 1/(1+exp(-x)) of same dimension as the input
+    """
+    z = np.clip(x, -700, 700)
+    return 1.0 / (1.0 + np.exp(-z))
+
+# Derivative of sigmoid
+def sigmoid_derivative(output: np.array) -> np.array:
+    """
+    Gradient of sigmoid activation function, element-by-element.
+
+    output:
+        output matrix of the layer
+
+    return:
+        gradient of output activations of same dimension as the input
+    """
+    return output * (1.0 - output)
+
+def relu(x: np.array) -> np.array:
+    """
+    ReLU (Rectified Linear Unit) activation function, element-by-element.
+
+    x:
+        input matrix
+
+    return:
+        output activations max(0,x) of same dimension as the input
+    """
+    return np.maximum(x,0)
+
+def relu_derivative(output: np.array) -> np.array:
+    """
+    Gradient of ReLU (Rectified Linear Unit) activation function, element-by-element.
+
+    output:
+        output matrix of the layer
+
+    return:
+        gradient of output activations of same dimension as the input
+    """
+    # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 if x > 0. nan is returned for nan inputs.
+    return np.sign(output)
 
 
 class NeuralNetwork:
@@ -7,9 +65,26 @@ class NeuralNetwork:
                  input_size: int,
                  hidden_size: int,
                  output_size: int,
+                 activation_func: ActivationFuncs = ActivationFuncs.SIGMOID,
                  learning_rate: float = 0.3):
         """
-        TODO: documentation
+        Instantiate a feed-forward neural network of the specified dimensions and activation functions.
+        Neuron layers do NOT include a bias term.
+
+        input_size:
+            the number of neurons in the input layer.
+
+        hidden_size:
+            the number of neurons in the hidden layer.
+
+        output_size:
+            the number of neurons in the output layer.
+
+        activation_func:
+            the activation function to use, assumed same for all layers.
+
+        learning_rate:
+            learning rate divisor. TODO: more on this.
         """
         # TODO: arbitrary layer counts
         self.input_size = input_size
@@ -23,20 +98,18 @@ class NeuralNetwork:
         self.weights_hidden_output = np.random.uniform(-0.5, 0.5, (output_size, hidden_size))
         self.bias_output = np.random.uniform(-0.5, 0.5, (output_size, 1))
 
-    # Sigmoid activation function
-    def sigmoid(self, x: np.array) -> np.array:
-        """
-        TODO: documentation
-        """
-        z = np.clip(x, -700, 700)
-        return 1.0 / (1.0 + np.exp(-z))
+        # Activation functions
+        match activation_func:
+            case ActivationFuncs.SIGMOID:
+                self.activation = sigmoid
+                self.activation_derivative = sigmoid_derivative
 
-    # Derivative of sigmoid
-    def sigmoid_derivative(self, output: np.array) -> np.array:
-        """
-        TODO: documentation
-        """
-        return output * (1.0 - output)
+            case ActivationFuncs.RELU:
+                self.activation = relu
+                self.activation_derivative = relu_derivative
+
+            case _:
+                raise ValueError(f"Activation function must be one of ActivationFuncs, received {activation_func}")
 
     # Forward propagation
     def forward(self, x: np.array) -> tuple[np.array, np.array]:
@@ -53,8 +126,8 @@ class NeuralNetwork:
         if x.shape[0] != self.input_size:
             raise ValueError(f"Expected {self.input_size} input size, received {x.shape[0]}.")
 
-        hidden = self.sigmoid(self.weights_input_hidden @ x + self.bias_hidden)
-        output = self.sigmoid(self.weights_hidden_output @ hidden + self.bias_output)
+        hidden = self.activation(self.weights_input_hidden @ x + self.bias_hidden)
+        output = self.activation(self.weights_hidden_output @ hidden + self.bias_output)
         return hidden, output
 
 
@@ -128,12 +201,12 @@ class NeuralNetwork:
         # gradient of loss w.r.t. $o_T$  (output of final layer)
         output_o_gradient = y_true - output_activation  # Note! Negative gradient!
         # gradient w.r.t. $a_T$  (input of final layer)
-        output_i_gradient = output_o_gradient * self.sigmoid_derivative(output_activation)
+        output_i_gradient = output_o_gradient * self.activation_derivative(output_activation)
         # Hidden error and gradient
         # gradient of loss w.r.t. $o_{T-1}$  (output of hidden layer)
         hidden_o_gradient = self.weights_hidden_output.T @ output_i_gradient
         # gradient of loss w.r.t. $a_T$   (input of hidden layer)
-        hidden_i_gradient = hidden_o_gradient * self.sigmoid_derivative(hidden_activation)
+        hidden_i_gradient = hidden_o_gradient * self.activation_derivative(hidden_activation)
 
         # # Gradients of weights and biases:
         # average gradient w.r.t. $b_T$ - bias terms
