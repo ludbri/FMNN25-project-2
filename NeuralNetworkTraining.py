@@ -1,4 +1,5 @@
 import numpy as np
+import tqdm
 from dataloading import minibatches, Dataset
 from NeuralNetwork import NeuralNetwork
 
@@ -44,26 +45,31 @@ def train_network(network: NeuralNetwork,
     }
     global_step = 0
 
-    # TODO: use tqdm
-    for epoch in range(epochs):
+    batches_per_epoch = training_limit//minibatch_size
+    if batches_per_epoch != int(batches_per_epoch): batches_per_epoch += 1
+
+    for epoch in tqdm.trange(epochs, desc="Training epochs"):
         total_loss = 0.0
         batches = 0
-        processed = 0  # images processed for learning
+        # processed = 0  # images processed for learning
         lr = 1/ (epoch + 1)
 
-        for x, y_onehot in minibatches(training_data, 
-                                       batch_size=minibatch_size, 
-                                       n=training_limit, 
-                                       one_hot=True, 
-                                       shuffle=True):
+        for x, y_onehot in tqdm.tqdm(minibatches(training_data, 
+                                                 batch_size=minibatch_size, 
+                                                 n=training_limit, 
+                                                 one_hot=True, 
+                                                 shuffle=True),
+                                     desc="batches",
+                                     total= batches_per_epoch,
+                                     leave=False):
             total_loss += network.train_batch(x, y_onehot, learning_rate = lr)
 
             global_step += 1
             batches += 1
 
-            processed += x.shape[0]
-            if processed % 1000 == 0:
-                print(f"  Epoch {epoch + 1}/{epochs}: {processed}/{training_limit} examples")
+            # processed += x.shape[0]
+            # if processed % 1000 == 0:
+            #     print(f"  Epoch {epoch + 1}/{epochs}: {processed}/{training_limit} examples")
 
         average_loss = total_loss / batches
 
