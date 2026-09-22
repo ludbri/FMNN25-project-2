@@ -51,8 +51,6 @@ def train_network(network: NeuralNetwork,
     for epoch in tqdm.trange(epochs, desc="Training epochs"):
         total_loss = 0.0
         batches = 0
-        # processed = 0  # images processed for learning
-        lr = 1/ (epoch + 1)
 
         for x, y_onehot in tqdm.tqdm(minibatches(training_data, 
                                                  batch_size=minibatch_size, 
@@ -62,14 +60,10 @@ def train_network(network: NeuralNetwork,
                                      desc="batches",
                                      total= batches_per_epoch,
                                      leave=False):
-            total_loss += network.train_batch(x, y_onehot, learning_rate = lr)
+            total_loss += network.train_batch(x, y_onehot, epoch_count = epoch)
 
             global_step += 1
             batches += 1
-
-            # processed += x.shape[0]
-            # if processed % 1000 == 0:
-            #     print(f"  Epoch {epoch + 1}/{epochs}: {processed}/{training_limit} examples")
 
         average_loss = total_loss / batches
 

@@ -4,13 +4,16 @@ import Plotting
 import testing_mini_batch_sizes
 from dataloading import load_mnist
 import parameters
+from FNNattack import attack
 
 testing_mini_batch = False
 plotting_accuracy = False
-plotting_loss = True
+plotting_loss = False
+test_attack = True
 
 
 epochs = 3
+minibatch_size = 64
 training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
@@ -45,7 +48,7 @@ if __name__ == "__main__":
         input_size=parameters.INPUT_SIZE,
         hidden_size=30,
         output_size=parameters.N_CLASSES,
-        activation_func=ActivationFuncs.SIGMOID,  # TODO: relu is not working right.
+        activation_func=ActivationFuncs.SIGMOID,  # TODO: relu is not working right?
         learning_rate=3
     )
     
@@ -60,7 +63,8 @@ if __name__ == "__main__":
         validation_data,
         epochs=epochs,
         training_limit=training_limit,
-        validation_limit=validation_limit
+        validation_limit=validation_limit,
+        minibatch_size=minibatch_size,
     )
 
     print(f"Testing network on {test_limit:,} test examples...")
@@ -121,3 +125,13 @@ if __name__ == "__main__":
     if plotting_loss:
         print("\nCreating loss graph...")
         Plotting.plot_loss(standard_history)
+
+    if test_attack:
+        x0 = training_data[0][0]
+        y0 = training_data[1][0]
+        y_pred = network.predict(x0)
+        for y_target in range(parameters.N_CLASSES):
+            if y_target == y_pred:
+                continue
+
+            attack(network, x0, y_target)
