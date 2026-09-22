@@ -220,6 +220,8 @@ class NeuralNetwork:
         grad_w_ih = (hidden_i_gradient @ x.T)
 
         # Learning rate
+        # batchsize = x.shape[1]
+        # lr = 1 / (epoch_count + 1) / self.learning_rate / batchsize  # <- not working right.
         lr = 1 / (epoch_count + 1) / self.learning_rate
 
         # adjust weights

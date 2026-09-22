@@ -221,3 +221,5 @@ __marimo__/
 .DS_Store
 mnist.pkl.gz
 mnist.pkl
+.vscode/*
+*.png

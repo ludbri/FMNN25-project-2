@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 
+import numpy as np
+import parameters
+
 
 # ============================================================
 # Plot a minibatch
@@ -85,11 +88,22 @@ def plot_batch_time(results):
 # GRAPH 5: Confusion Matrix
 # ============================================================
 
-def confusion_matrix(results):
+def confusion_matrix(y_true, y_pred):
     """
     Plot the confusion matrix - y axis is the true class, x axis is the prediction. 
     Each row is normalized to 1.
     """
-    # TODO: implement and plot confusion matrix
-    ...
+    counts = np.zeros((parameters.N_CLASSES, parameters.N_CLASSES), dtype=int)
+    for y_t, y_p in zip(y_true, y_pred):
+        counts[y_t,y_p] += 1
+    counts /= counts.sum(axis=1, keepdims=True)
+    fig, ax = plt.subplots()
+    ax.matshow(counts, cmap='Greys', title="Confusion matrix")
+    ticks = [range(10)]
+    ax.set_xticks(ticks, ticks)
+    ax.set_yticks(ticks, ticks)
+
+    plt.show()
+
+    return fig, ax
 
