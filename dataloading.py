@@ -40,6 +40,7 @@ def minibatches(dataset: Dataset,
     n:
         the maximum total number of samples to provide.
         If None, yields all samples in the dataset.
+        Selects the samples before shuffling.
 
     one_hot:
         If True, the labels (y) are returned as a one-hot encoding.

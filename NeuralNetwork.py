@@ -56,7 +56,8 @@ def relu_derivative(output: np.array) -> np.array:
         gradient of output activations of same dimension as the input
     """
     # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 if x > 0. nan is returned for nan inputs.
-    return np.sign(output)
+    grad = np.sign(output)
+    return grad
 
 
 class NeuralNetwork:
@@ -143,6 +144,8 @@ class NeuralNetwork:
             a n array with indices of the output node with the largest activation for each input sample.
         """
         x = np.asarray(x)
+        if x.ndim == 1:
+            x = x[np.newaxis,:]
         if x.shape[1] != self.input_size:
             raise ValueError(f"Expected {self.input_size} input size, received {x.shape[1]}.")
         
@@ -171,7 +174,7 @@ class NeuralNetwork:
     def train_batch(self, 
                     x: np.array, 
                     y_true: np.array, 
-                    learning_rate: float) -> float:
+                    epoch_count: int) -> float:
         """
         Trains the network on one batch of data.
 
@@ -191,9 +194,6 @@ class NeuralNetwork:
         y_true = np.asarray(y_true).reshape(-1, self.output_size).T
 
         hidden_activation, output_activation = self.forward(x)
-
-        # Mean Squared Error, used here only to monitor training
-        batch_loss = self.square_loss(output_activation, y_true)
 
         ## Output error and partial gradients
         # loss = (output - y_true) ** 2 = output**2 - 2*output*y_true + y_true**2
@@ -220,12 +220,19 @@ class NeuralNetwork:
         grad_w_ih = (hidden_i_gradient @ x.T)
 
         # Learning rate
-        lr = learning_rate / self.learning_rate
+        # batchsize = x.shape[1]
+        # lr = 1 / (epoch_count + 1) / self.learning_rate / batchsize  # <- not working right.
+        lr = 1 / (epoch_count + 1) / self.learning_rate
 
         # adjust weights
         self.weights_hidden_output += lr * grad_w_ho
         self.bias_output += lr * grad_b_o
         self.weights_input_hidden += lr * grad_w_ih
         self.bias_hidden += lr * grad_b_h
+        
+        # Mean Squared Error, used here only to monitor training
+        # Should the loss not be measured after doing the gradient step?
+        _, output_activation = self.forward(x)
+        batch_loss = self.square_loss(output_activation, y_true)
 
         return batch_loss
