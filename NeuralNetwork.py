@@ -267,10 +267,7 @@ class NeuralNetwork:
         -------
         float
             The sample-average loss on the batch, computed AFTER the
-            weight update is applied.
-            # Q: should this be measured before the update instead, to
-            # reflect the model's loss going into this batch rather than
-            # coming out of it?
+            weight update is applied. TODO: evaluate after minibatches.
         """
         # Transpose so each column is a sample: shape becomes (input_size, n) / (output_size, n)
         x = np.asarray(x).reshape(-1, self.input_size).T
@@ -315,6 +312,8 @@ class NeuralNetwork:
         # issue above? Left commented out because it "wasn't working right" --
         # worth revisiting together.
         lr = 1 / (epoch_count + 1) / self.learning_rate
+
+        # TODO: normalize the gradient to length 1.
 
         # adjust weights
         self.weights_hidden_output += lr * grad_w_ho

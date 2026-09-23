@@ -33,7 +33,6 @@ validation_limit = 1000
 test_limit = 1000
 
 # Set global parameters used across modules (network architecture constants) 
-# Q: what is the point of this?
 parameters.N_CLASSES = 10
 parameters.INPUT_SIZE = 784
 
@@ -148,5 +147,4 @@ if __name__ == "__main__":
         # single training image (at attack_image_index) as the starting point
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
-        y0 = training_data[1][attack_image_index] # Q: IS Y0 USED SOMEWHERE?
         make_attacks(network, x0)

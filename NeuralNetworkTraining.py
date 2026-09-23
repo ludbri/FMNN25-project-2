@@ -90,15 +90,9 @@ def train_network(network: NeuralNetwork,
         "loss": [],
         "validation_accuracy": []
     }
-    global_step = 0 # Q: incremented every batch but never read -- unused?
     
     # Number of batches expected per epoch, for the tqdm progress bar total
-    batches_per_epoch = training_limit//minibatch_size
-    
-    # Q: `//` is integer division, so batches_per_epoch is already an int --
-    # `batches_per_epoch != int(batches_per_epoch)` can never be True, so
-    # this "round up" branch does not do anything?
-    if batches_per_epoch != int(batches_per_epoch): batches_per_epoch += 1
+    batches_per_epoch = int(np.ceil(training_limit / minibatch_size))
 
     for epoch in tqdm.trange(epochs, desc="Training epochs"):
         total_loss = 0.0
@@ -115,7 +109,6 @@ def train_network(network: NeuralNetwork,
                                      leave=False):
             total_loss += network.train_batch(x, y_onehot, epoch_count = epoch)
 
-            global_step += 1
             batches += 1
 
         average_loss = total_loss / batches

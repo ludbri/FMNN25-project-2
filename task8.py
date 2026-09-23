@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     dataset_file = "mnist.pkl"
     
-    random.seed(42) # Q: do we also need np.random.seed?
+    np.random.seed(42)
     
     print("Loading MNIST dataset...")
     training_data, validation_data, test_data = load_mnist(dataset_file)
