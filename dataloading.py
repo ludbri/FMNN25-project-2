@@ -72,6 +72,17 @@ def minibatches(dataset: Dataset,
 
 
 def test_minibatches():
+    """
+    Sanity-checks `minibatches` against a 22-sample slice of the MNIST
+    training set with batch_size=5.
+
+    Expects 5 batches total: four full batches of 5 samples, followed by
+    one partial batch of the 2 remaining samples (22 = 4*5 + 2). Checks
+    that each batch's labels are one-hot encoded with width
+    `parameters.N_CLASSES`, and that batch sizes match this expected
+    4-full-plus-1-partial pattern.
+
+    """
     fp = Path("mnist.pkl")
     train, val, test = load_mnist(fp)
 
@@ -91,7 +102,10 @@ if __name__ == "__main__":
     fp = Path("mnist.pkl")
 
     train, val, test = load_mnist(fp)
-
+    
+    # Demo: print each batch's first image and its shape, plus the
+    # corresponding one-hot labels, with shuffling disabled so output
+    # is deterministic/inspectable
     for x, y in minibatches(train,
                           batch_size=5,
                           n = 22,
