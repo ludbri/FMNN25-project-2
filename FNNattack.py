@@ -1,3 +1,9 @@
+"""
+Generates adversarial examples against a trained NeuralNetwork by
+gradient-ascent-style perturbation of an input image until the network
+classifies it as a chosen target class.
+"""
+
 import numpy as np
 from NeuralNetwork import NeuralNetwork
 import parameters
@@ -7,12 +13,33 @@ import matplotlib.pyplot as plt
 def attack(network: NeuralNetwork,
            x: np.array,
            target: int):
-    """
-    Minimally adjust x such that the network believes it is of class target.
+     """
+    Minimally adjusts `x` via iterative gradient steps until the network
+    classifies it as `target`.
+
+    Parameters
+    ----------
+    network : NeuralNetwork
+        The trained network to attack (its weights are not modified;
+        only the input `x` is perturbed).
+    x : np.ndarray
+        Starting input image, flattened to shape matching
+        `network.input_size`.
+    target : int
+        The target class index the attack tries to make the network
+        predict for the (perturbed) input.
+
+    Returns
+    -------
+    np.ndarray
+        The perturbed input, reshaped to (1, network.input_size), for
+        which `network.predict` returns `target`. Values are clipped
+        to the valid image range [0, 1].
     """
     stsize = 10**-1
     x = x.copy()
     y = network.predict(x)
+           # One-hot vector representing the desired (target) output 
     grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
     grad_target[target] = 1
     # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
