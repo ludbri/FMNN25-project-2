@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 def attack(network: NeuralNetwork,
            x: np.ndarray,
            target: int):
-     """
+    """
     Minimally adjusts `x` via iterative gradient steps until the network
     classifies it as `target`.
 
