@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 def attack(network: NeuralNetwork,
-           x: np.array,
+           x: np.ndarray,
            target: int):
      """
     Minimally adjusts `x` via iterative gradient steps until the network
@@ -39,7 +39,8 @@ def attack(network: NeuralNetwork,
     stsize = 10**-1
     x = x.copy()
     y = network.predict(x)
-           # One-hot vector representing the desired (target) output 
+    
+    # One-hot vector representing the desired (target) output 
     grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
     grad_target[target] = 1
     # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
@@ -74,7 +75,25 @@ def attack(network: NeuralNetwork,
 
 
 def make_attacks(network: NeuralNetwork,
-                 x: np.array):
+                 x: np.ndarray):
+    """
+    Runs the `attack` function against every possible target class for
+    a single starting image, then displays the original image alongside
+    all resulting adversarial examples in a grid, each labeled with the
+    network's predicted class.
+
+    Parameters
+    ----------
+    network : NeuralNetwork
+        The trained network to attack.
+    x : np.ndarray
+        A single starting input image (flattened).
+
+    Returns
+    -------
+    None
+        Displays a matplotlib figure; does not return a value.
+    """
     xs = []
     for y_target in range(parameters.N_CLASSES):
         xs.append(attack(network, x, y_target))

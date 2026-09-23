@@ -1,3 +1,16 @@
+"""
+Main entry point for training and evaluating the neural network on MNIST.
+
+Loads the MNIST dataset, trains a standard network configuration, and
+optionally runs additional experiments/visualizations controlled by the
+boolean flags below:
+    - testing_mini_batch:  compare training across several mini-batch sizes
+    - plotting_accuracy:   plot validation accuracy vs. epoch for the standard run
+    - plotting_loss:       plot training loss vs. epoch for the standard run
+    - test_attack:         run adversarial attack(s) against the trained network
+"""
+
+
 from NeuralNetwork import NeuralNetwork, ActivationFuncs
 import NeuralNetworkTraining
 import Plotting
@@ -6,19 +19,21 @@ from dataloading import load_mnist
 import parameters
 from FNNattack import attack, make_attacks
 
+# Flags controlling which optional sections of the script run
 testing_mini_batch = False
 plotting_accuracy = False
 plotting_loss = True
 test_attack = True
 
-
+# Hyperparameters / limits for the standard training run
 epochs = 3
 minibatch_size = 64
 training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
 
-# Set global parameters
+# Set global parameters used across modules (network architecture constants) 
+# Q: what is the point of this?
 parameters.N_CLASSES = 10
 parameters.INPUT_SIZE = 784
 
@@ -41,7 +56,7 @@ if __name__ == "__main__":
     # --------------------------------------------------------
 
     print("\n" + "=" * 60)
-    print("STANDARD RUN: MINI-BATCH SIZE = 10")
+    print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
     print("=" * 60)
 
     network = NeuralNetwork(
@@ -83,6 +98,8 @@ if __name__ == "__main__":
     if testing_mini_batch:
         # --------------------------------------------------------
         # MINI-BATCH EXPERIMENT
+        # Trains separate networks at several mini-batch sizes to compare
+        # their effect on final validation accuracy and training time.
         # --------------------------------------------------------
 
         print("\n" + "=" * 60)
@@ -118,7 +135,7 @@ if __name__ == "__main__":
     
     if plotting_accuracy:
         
-    # Graphs for standard run
+        # Graphs for standard run
         print("\nCreating accuracy graph...")
         Plotting.plot_validation_accuracy(standard_history)
     
@@ -127,7 +144,9 @@ if __name__ == "__main__":
         Plotting.plot_loss(standard_history)
 
     if test_attack:
+        # Run an adversarial attack against the trained network, using a
+        # single training image (at attack_image_index) as the starting point
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
-        y0 = training_data[1][attack_image_index]
+        y0 = training_data[1][attack_image_index] # Q: IS Y0 USED SOMEWHERE?
         make_attacks(network, x0)

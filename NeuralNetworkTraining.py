@@ -8,15 +8,34 @@ def evaluate(network: NeuralNetwork,
              dataset: Dataset,
              limit: int = None)-> tuple[int, int]:
     """
-    TODO: documentation
-    Return (number_correct, number_tested).
+    Evaluates a network's prediction accuracy on a dataset.
+
+    Parameters
+    ----------
+    network : NeuralNetwork
+        The trained (or in-training) network to evaluate.
+    dataset : Dataset
+        A (images, y_true) pair -- input samples and their true labels.
+    limit : int, optional
+        Maximum number of samples to evaluate. If None, evaluates on
+        the entire dataset. If greater than the dataset size, it is
+        capped to the dataset size.
+
+    Returns
+    -------
+    tuple[int, int]
+        (number_correct, number_tested) -- the count of correctly
+        classified samples and the total number of samples evaluated.
     """
     images, y_true = dataset
+    
+    # Cap the evaluation to `limit` samples, or use the full dataset if none given
     if limit is None:
         limit = len(images)
     else:
         limit = min(limit, len(images))
-
+        
+    # Predict on the first `limit` samples and count matches against true labels
     y_pred = network.predict(images[:limit])
     correct = np.sum(np.equal(y_pred, y_true[:limit]))
 
@@ -32,7 +51,35 @@ def train_network(network: NeuralNetwork,
                   training_limit: int = 10000, 
                   validation_limit: int = 1000) -> HistoryDict:
     """
-    TODO: documentation
+    Trains a network for a given number of epochs using mini-batch
+    gradient descent, tracking loss and validation accuracy per epoch.
+
+    Parameters
+    ----------
+    network : NeuralNetwork
+        The network to train.
+    training_data : Dataset
+        Dataset used for training.
+    validation_data : Dataset
+        Dataset used to measure validation accuracy after each epoch.
+    minibatch_size : int, default=10
+        Number of samples per mini-batch.
+    epochs : int, default=3
+        Number of full passes over the training data (capped at
+        `training_limit` samples per epoch).
+    training_limit : int, default=10000
+        Maximum number of training samples to use per epoch. Capped to
+        the size of `training_data` if smaller.
+    validation_limit : int, default=1000
+        Maximum number of validation samples to evaluate on. Capped to
+        the size of `validation_data` if smaller.
+
+    Returns
+    -------
+    HistoryDict
+        Dictionary with keys "epochs", "loss", and "validation_accuracy",
+        each a list with one entry per completed epoch, suitable for
+        passing to the plotting functions.
     """
     # Save metrics for plots
     training_limit = min(training_limit, len(training_data[0]))
@@ -43,15 +90,21 @@ def train_network(network: NeuralNetwork,
         "loss": [],
         "validation_accuracy": []
     }
-    global_step = 0
-
+    global_step = 0 # Q: incremented every batch but never read -- unused?
+    
+    # Number of batches expected per epoch, for the tqdm progress bar total
     batches_per_epoch = training_limit//minibatch_size
+    
+    # Q: `//` is integer division, so batches_per_epoch is already an int --
+    # `batches_per_epoch != int(batches_per_epoch)` can never be True, so
+    # this "round up" branch does not do anything?
     if batches_per_epoch != int(batches_per_epoch): batches_per_epoch += 1
 
     for epoch in tqdm.trange(epochs, desc="Training epochs"):
         total_loss = 0.0
         batches = 0
-
+        
+        # Iterate over shuffled, one-hot-encoded mini-batches for this epoch
         for x, y_onehot in tqdm.tqdm(minibatches(training_data, 
                                                  batch_size=minibatch_size, 
                                                  n=training_limit, 
@@ -66,7 +119,8 @@ def train_network(network: NeuralNetwork,
             batches += 1
 
         average_loss = total_loss / batches
-
+        
+        # Evaluate on the validation set after each epoch
         correct, total = evaluate(
             network,
             validation_data,

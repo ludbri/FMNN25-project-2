@@ -3,59 +3,90 @@ from enum import IntEnum, auto
 
 
 class ActivationFuncs(IntEnum):
+    
     SIGMOID = auto()
     RELU = auto()
 
 # Sigmoid activation function
-def sigmoid(x: np.array) -> np.array:
+def sigmoid(x: np.ndarray) -> np.ndarray:
     """
-    Sigmoid activation function, element-by-element.
+    Applies the sigmoid activation function elementwise to an array:
+    sigmoid(x) = 1 / (1 + exp(-x)).
 
-    x:
-        input matrix
+    Parameters
+    ----------
+    x : np.ndarray
+        Input array.
 
-    return:
-        output activations 1/(1+exp(-x)) of same dimension as the input
+    Returns
+    -------
+    np.ndarray
+        Array of the same shape as `x`, with the sigmoid function applied
+        elementwise. All output values lie in the range (0, 1).
     """
-    z = np.clip(x, -700, 700)
-    return 1.0 / (1.0 + np.exp(-z))
+
+    z = np.clip(x, -700, 700)   # Clip input to avoid overflow in exp(-x);
+                                # exp(709) is close to the float64 max,
+                                # so values beyond ~±700 would overflow/underflow.
+    
+    return 1.0 / (1.0 + np.exp(-z)) #applies the sigmoid function
 
 # Derivative of sigmoid
-def sigmoid_derivative(output: np.array) -> np.array:
+def sigmoid_derivative(x: np.ndarray) -> np.ndarray:
     """
-    Gradient of sigmoid activation function, element-by-element.
+    Computes the elementwise gradient of the sigmoid activation function,
+    using the identity sigmoid'(x) = sigmoid(x) * (1 - sigmoid(x)).
 
-    output:
-        output matrix of the layer
+    Parameters
+    ----------
+    output : np.ndarray
+        The sigmoid-activated output of the layer (i.e., sigmoid(x)),
+        not the raw pre-activation input.
 
-    return:
-        gradient of output activations of same dimension as the input
+    Returns
+    -------
+    np.ndarray
+        Gradient of the sigmoid function, same shape as `output`.
     """
-    return output * (1.0 - output)
 
-def relu(x: np.array) -> np.array:
+    return x * (1.0 - x) #applies the gradient
+
+def relu(x: np.ndarray) -> np.ndarray:
     """
-    ReLU (Rectified Linear Unit) activation function, element-by-element.
-
-    x:
-        input matrix
-
-    return:
-        output activations max(0,x) of same dimension as the input
+    Applies the ReLU (Rectified Linear Unit) activation function
+    elementwise to an array: relu(x) = max(0, x).
+ 
+    Parameters
+    ----------
+    x : np.ndarray
+        Input array.
+ 
+    Returns
+    -------
+    np.ndarray
+        Array of the same shape as `x`, with ReLU applied elementwise.
     """
+
     return np.maximum(x,0)
 
-def relu_derivative(output: np.array) -> np.array:
+def relu_derivative(output: np.ndarray) -> np.ndarray:
     """
-    Gradient of ReLU (Rectified Linear Unit) activation function, element-by-element.
+    Computes the elementwise gradient of the ReLU activation function,
+    using the ReLU output (relu'(x) = 1 if output > 0 else 0).
 
-    output:
-        output matrix of the layer
+    Parameters
+    ----------
+    output : np.ndarray
+        The ReLU-activated output of the layer (i.e., relu(x)),
+        not the raw pre-activation input.
 
-    return:
-        gradient of output activations of same dimension as the input
+    Returns
+    -------
+    np.ndarray
+        Gradient of the ReLU function, same shape as `output`.
     """
-    # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 if x > 0. nan is returned for nan inputs.
+    # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 
+    # if x > 0. nan is returned for nan inputs.
     grad = np.sign(output)
     return grad
 
@@ -69,8 +100,8 @@ class NeuralNetwork:
                  activation_func: ActivationFuncs = ActivationFuncs.SIGMOID,
                  learning_rate: float = 0.3):
         """
-        Instantiate a feed-forward neural network of the specified dimensions and activation functions.
-        Neuron layers do NOT include a bias term.
+        Instantiate a feed-forward neural network of the specified dimensions 
+        and activation functions.Neuron layers do NOT include a bias term.
 
         input_size:
             the number of neurons in the input layer.
@@ -98,8 +129,9 @@ class NeuralNetwork:
         self.bias_hidden = np.random.uniform(-0.5, 0.5, (hidden_size, 1))
         self.weights_hidden_output = np.random.uniform(-0.5, 0.5, (output_size, hidden_size))
         self.bias_output = np.random.uniform(-0.5, 0.5, (output_size, 1))
-
-        # Activation functions
+        
+        # Assigns the activation function and its derivative based on the
+        # ActivationFuncs value passed in at construction.
         match activation_func:
             case ActivationFuncs.SIGMOID:
                 self.activation = sigmoid
@@ -113,56 +145,99 @@ class NeuralNetwork:
                 raise ValueError(f"Activation function must be one of ActivationFuncs, received {activation_func}")
 
     # Forward propagation
-    def forward(self, x: np.array) -> tuple[np.array, np.array]:
+    def forward(self, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Passes a set of inputs through the network.
-        
-        x:
-            is a input_size x n matrix of n samples.
-
-        return:
-            the output activations of the hidden and output layer neurons
+    
+        Parameters
+        ----------
+        x : np.ndarray
+            Input array of shape (self.input_size, n), where n is the number
+            of samples.
+    
+        Returns
+        -------
+        hidden_output : np.ndarray
+            Output activations of the hidden layer.
+        output : np.ndarray
+            Output activations of the output layer.
         """
+        
+        # Ensure x is an ndarray (handles lists/other array-likes passed in)
         x = np.asarray(x)
+        
+        # Validate that the number of input features matches what the network expects
         if x.shape[0] != self.input_size:
             raise ValueError(f"Expected {self.input_size} input size, received {x.shape[0]}.")
-
+        
+        # Hidden layer: linear transform (weights @ x + bias), then activation
         hidden = self.activation(self.weights_input_hidden @ x + self.bias_hidden)
+        
+        # Output layer: linear transform of hidden activations, then activation
         output = self.activation(self.weights_hidden_output @ hidden + self.bias_output)
         return hidden, output
 
 
     # Prediction: output neuron with largest activation
-    def predict(self, x: np.array) -> np.array:
+    def predict(self, x: np.ndarray) -> np.ndarray:
         """
-        Passes a set of inputs through the network returning the predicted classifications.
+        Passes a set of inputs through the network and returns the predicted
+        class labels.
+    
+        Parameters
+        ----------
+        x : np.ndarray
+            Input array of shape (n, input_size), where n is the number
+            of samples.
+    
+        Returns
+        -------
+        np.ndarray
+            Array of shape (n,) containing, for each sample, the index of
+            the output node with the largest activation.
+        """
         
-        x:
-            is a n x input_size matrix of n samples.
-
-        return:
-            a n array with indices of the output node with the largest activation for each input sample.
-        """
+        # Ensure x is an ndarray (handles lists/other array-likes passed in)
         x = np.asarray(x)
+        
+        # If a single sample was passed as a 1D array, promote it to a 2D
+        # row vector so the shape checks and transpose below work uniformly
         if x.ndim == 1:
             x = x[np.newaxis,:]
+            
+        # Validate that the number of input features matches what the network expects    
         if x.shape[1] != self.input_size:
             raise ValueError(f"Expected {self.input_size} input size, received {x.shape[1]}.")
         
+        # forward() expects shape (input_size, n), but x here is (n, input_size),
+        # so transpose before passing it through; only the output layer
+        # activations are needed for prediction, hidden activations are discarded
         _, outputs = self.forward(x.T)
+        
+        # For each sample (column), return the index of the output node
+        # with the highest activation — the predicted class label
         return np.argmax(outputs, axis=0)
     
     
     def square_loss(self,
-                    y_pred: np.array,
-                    y_true: np.array) -> float:
+                    y_pred: np.ndarray,
+                    y_true: np.ndarray) -> float:
         """
-        Calculates the quadratic loss function, taking in the predicted values and 
-        the exact values as arrays. 
-
-        the inputs are output_size x n matrices of n samples.
-        
-        Returns the L2-norm
+        Calculates the mean squared error between predicted and true values.
+    
+        Parameters
+        ----------
+        y_pred : np.ndarray
+            Predicted values, of shape (output_size, n) for n samples.
+        y_true : np.ndarray
+            Ground-truth values, of the same shape as `y_pred`.
+    
+        Returns
+        -------
+        float
+            The mean squared error, computed as the sum of squared
+            differences per sample (averaged over the output dimension via
+            np.sum), averaged over all samples, and halved.
         """
         loss = (y_pred - y_true) ** 2
         loss = np.sum(loss, axis=0)
@@ -172,24 +247,32 @@ class NeuralNetwork:
 
     # Train one mini-batch using backpropagation
     def train_batch(self, 
-                    x: np.array, 
-                    y_true: np.array, 
+                    x: np.ndarray, 
+                    y_true: np.ndarray, 
                     epoch_count: int) -> float:
         """
         Trains the network on one batch of data.
-
-        x:
-            a n x input_size matrix of n samples.
-
-        y:
-            a n x output_size matrix of the one-hot encoded true classes of each sample.
-
-        learning_rate:
-            external learning rate, is divided by the internal self.learning_rate coefficient.
-
-        Returns the sample-average loss on the batch before adjusting weights.
+    
+        Parameters
+        ----------
+        x : np.ndarray
+            Input array of shape (n, input_size) for n samples.
+        y_true : np.ndarray
+            One-hot encoded true class labels, of shape (n, output_size).
+        epoch_count : int
+            Current epoch number; used to decay the effective learning rate
+            as 1 / (epoch_count + 1).
+    
+        Returns
+        -------
+        float
+            The sample-average loss on the batch, computed AFTER the
+            weight update is applied.
+            # Q: should this be measured before the update instead, to
+            # reflect the model's loss going into this batch rather than
+            # coming out of it?
         """
-        # Transpose s.t. each column is a sample
+        # Transpose so each column is a sample: shape becomes (input_size, n) / (output_size, n)
         x = np.asarray(x).reshape(-1, self.input_size).T
         y_true = np.asarray(y_true).reshape(-1, self.output_size).T
 
@@ -198,30 +281,39 @@ class NeuralNetwork:
         ## Output error and partial gradients
         # loss = (output - y_true) ** 2 = output**2 - 2*output*y_true + y_true**2
         # gradient = 2 * (output - y_true)
-        # gradient of loss w.r.t. $o_T$  (output of final layer)
+        # gradient of loss w.r.t. output layer's output, using the NEGATIVE
+        # gradient (y_true - output) so that += lr * grad descends the loss
         output_o_gradient = y_true - output_activation  # Note! Negative gradient!
-        # gradient w.r.t. $a_T$  (input of final layer)
+        # gradient w.r.t. output layer's pre-activation input
         output_i_gradient = output_o_gradient * self.activation_derivative(output_activation)
-        # Hidden error and gradient
-        # gradient of loss w.r.t. $o_{T-1}$  (output of hidden layer)
+
+        # Potentially error!!
+        # gradient of loss w.r.t. hidden layer's output (backprop through weights)
         hidden_o_gradient = self.weights_hidden_output.T @ output_i_gradient
-        # gradient of loss w.r.t. $a_T$   (input of hidden layer)
+        # gradient w.r.t. hidden layer's pre-activation input
         hidden_i_gradient = hidden_o_gradient * self.activation_derivative(hidden_activation)
 
-        # # Gradients of weights and biases:
-        # average gradient w.r.t. $b_T$ - bias terms
+
+
+        # Gradients of weights and biases:
+        # bias gradients, averaged over the batch
         grad_b_o = output_i_gradient.mean(axis=1, keepdims=True)
-        # average gradient w.r.t. $w_T$ - weight terms
+        # weight gradients, summed (not averaged) over the batch
+        # Q: should this be divided by batch size to match how the bias
+        # gradients are averaged above? As-is, larger batches produce
+        # proportionally larger weight updates than bias updates.
         grad_w_ho = (output_i_gradient @ hidden_activation.T)
 
         # average gradient w.r.t. $b_{T-1}$ - bias terms
         grad_b_h = hidden_i_gradient.mean(axis=1, keepdims=True)
-        # average gradient w.r.t. $w_{T-1}$ - weight terms
         grad_w_ih = (hidden_i_gradient @ x.T)
 
-        # Learning rate
+        # Learning rate, decayed by epoch count
         # batchsize = x.shape[1]
         # lr = 1 / (epoch_count + 1) / self.learning_rate / batchsize  # <- not working right.
+        # Q: was dividing by batch size here meant to fix the summed-gradient
+        # issue above? Left commented out because it "wasn't working right" --
+        # worth revisiting together.
         lr = 1 / (epoch_count + 1) / self.learning_rate
 
         # adjust weights
@@ -230,8 +322,9 @@ class NeuralNetwork:
         self.weights_input_hidden += lr * grad_w_ih
         self.bias_hidden += lr * grad_b_h
         
-        # Mean Squared Error, used here only to monitor training
-        # Should the loss not be measured after doing the gradient step?
+        # Mean Squared Error, used here only to monitor training.
+        # Recomputes forward() AFTER the weight update above.
+        # Q: see the note in Returns above -- is post-update loss intended?
         _, output_activation = self.forward(x)
         batch_loss = self.square_loss(output_activation, y_true)
 
