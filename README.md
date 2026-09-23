@@ -15,6 +15,7 @@ testing_mini_batch_sizes - function for testing mini-batch size
 
 To do:
 - [x] Proper documentation
+- [ ] add a requirements.txt file!
 
 - [ ] Extension?
 
