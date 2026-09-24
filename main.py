@@ -63,7 +63,7 @@ if __name__ == "__main__":
         hidden_size=30,
         output_size=parameters.N_CLASSES,
         activation_func=ActivationFuncs.SIGMOID,  # TODO: relu is not working right?
-        learning_rate=32
+        learning_rate=0.1
     )
     
     

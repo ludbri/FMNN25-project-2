@@ -12,7 +12,6 @@ with the lowest final loss.
 from NeuralNetwork import NeuralNetwork
 import NeuralNetworkTraining
 import numpy as np
-import random
 from dataloading import load_mnist
 import parameters
 
@@ -25,10 +24,10 @@ test_limit = 1000
 
 # Hyperparameter search ranges. Comments note the best value found in a
 # previous run of this search (kept for reference).
-hidden_size_tuple = tuple(np.arange(35, 45, 1)) #best 40
-epochs_tuple = tuple(np.arange(5, 20, 1)) #best 16
+hidden_size_tuple = tuple(np.arange(35, 45, 1)) #best 42
+epochs_tuple = tuple(np.arange(5, 20, 1)) #best 19
 mini_batch_size_tuple = (1, 2) #best 1
-learning_rate_tuple = tuple(np.arange(3, 5, 0.1)) #best 4.9
+learning_rate_tuple = tuple(np.arange(0, 2, 0.1)) #best 0.27
 
 # also the activation function, now sigma, add here for activation option
 # training procedure, stochastic gradient descent
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     print("Test examples:", len(test_data[0]))
     print("Inputs per image:", len(training_data[0][0]))
     
-    results = np.array(tuple)
+    results = []
 
      # --------------------------------------------------------
     # STANDARD RUN
@@ -116,7 +115,7 @@ if __name__ == "__main__":
                     
                     # Record this combination's hyperparameters alongside
                     # its final training loss, as a single tuple.
-                    results.append((hidden_size, learning_rate, mini_batch_size, epochs, standard_history["loss"][-1]))
+                    results.append(hidden_size, learning_rate, mini_batch_size, epochs, standard_history["loss"][-1])
 
     
     

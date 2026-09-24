@@ -243,7 +243,39 @@ class NeuralNetwork:
         loss = np.sum(loss, axis=0)
         loss = np.mean(loss) / 2
         return loss
-
+    
+    def _normalize(self, grad, eps=1e-8):
+        """
+        Rescales a gradient array to unit (Frobenius/L2) norm.
+    
+        Divides `grad` by its norm so the returned array has norm ~1,
+        preserving direction but discarding magnitude. Intended to be
+        applied separately to each parameter's gradient (e.g. weights
+        and biases individually), not to a concatenation of all of them,
+        so that one parameter's gradient scale doesn't dominate another's.
+    
+        Parameters
+        ----------
+        grad : np.ndarray
+            Gradient array to normalize. Can be any shape; the norm is
+            computed over all elements.
+        eps : float, optional
+            Small constant added to the denominator to avoid division
+            by zero when `grad` is all zeros (e.g. a dead unit).
+            Default is 1e-8.
+    
+        Returns
+        -------
+        np.ndarray
+            `grad` rescaled to have norm approximately 1, same shape as
+            the input. Note this discards the gradient's original
+            magnitude entirely -- every call produces a unit-norm step
+            regardless of how large or small the true gradient was.
+            
+        TODO; another option would be to only clip very large gradients??
+        """
+        norm = np.linalg.norm(grad)
+        return grad / (norm + eps)
 
     # Train one mini-batch using backpropagation
     def train_batch(self, 
@@ -284,7 +316,6 @@ class NeuralNetwork:
         # gradient w.r.t. output layer's pre-activation input
         output_i_gradient = output_o_gradient * self.activation_derivative(output_activation)
 
-        # Potentially error!!
         # gradient of loss w.r.t. hidden layer's output (backprop through weights)
         hidden_o_gradient = self.weights_hidden_output.T @ output_i_gradient
         # gradient w.r.t. hidden layer's pre-activation input
@@ -298,22 +329,28 @@ class NeuralNetwork:
         # weight gradients, summed (not averaged) over the batch
         # Q: should this be divided by batch size to match how the bias
         # gradients are averaged above? As-is, larger batches produce
-        # proportionally larger weight updates than bias updates.
+        # proportionally larger weight updates than bias updates. 
+        # NO, as we normalize below it is not necessary, but if we decide to not 
+        # normalize, we should consider it
         grad_w_ho = (output_i_gradient @ hidden_activation.T)
 
         # average gradient w.r.t. $b_{T-1}$ - bias terms
         grad_b_h = hidden_i_gradient.mean(axis=1, keepdims=True)
         grad_w_ih = (hidden_i_gradient @ x.T)
+        
+        # TODO: normalize the gradient to length 1. DONE!
+
+        
+        grad_w_ho = self._normalize(grad_w_ho)
+        grad_b_o  = self._normalize(grad_b_o)
+        grad_w_ih = self._normalize(grad_w_ih)
+        grad_b_h  = self._normalize(grad_b_h)
 
         # Learning rate, decayed by epoch count
-        # batchsize = x.shape[1]
-        # lr = 1 / (epoch_count + 1) / self.learning_rate / batchsize  # <- not working right.
-        # Q: was dividing by batch size here meant to fix the summed-gradient
-        # issue above? Left commented out because it "wasn't working right" --
-        # worth revisiting together.
-        lr = 1 / (epoch_count + 1) / self.learning_rate
+        # Q: is this maybe inverted?
+        #previously lr = 1 / (epoch_count + 1) / self.learning_rate
+        lr = self.learning_rate / (epoch_count + 1)
 
-        # TODO: normalize the gradient to length 1.
 
         # adjust weights
         self.weights_hidden_output += lr * grad_w_ho
