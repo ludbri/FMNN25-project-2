@@ -52,9 +52,9 @@ def compare_mini_batch_sizes(training_data, validation_data,
 
         # Fresh network for a fair separate experiment
         network = NeuralNetwork(
-            input_size=parameters.INPUT_SIZE,
-            hidden_size=30,
-            output_size=parameters.N_CLASSES,
+            layer_sizes=(parameters.INPUT_SIZE,
+                         30,
+                         parameters.N_CLASSES),
             learning_rate=0.3
         )
 

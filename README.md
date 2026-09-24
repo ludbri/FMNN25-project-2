@@ -18,16 +18,16 @@ To do:
 - [ ] add a requirements.txt file!
 
 - [ ] Extension
-  -  [ ] allow any number of hidden layers
+  -  [x] allow any number of hidden layers
   -  [ ] compare 4 output neuron with 10 output neuron
-  -  [ ] allow any activation function to be used
-  -  [ ] allow any loss to be used
+  -  [x] allow any activation function to be used
+  -  [x] allow any loss to be used
   -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
-- [ ] Evaluate the losses at the end of each epoch, after learning all minibatches.
-  - [ ] Plot training and validation losses together.
-- [ ] Scaling of training gradients? Mean or divide by batchsize? What should it be?
+- [x] Evaluate the losses at the end of each epoch, after learning all minibatches.
+  - [x] Plot training and validation losses together.
+- [x] Scaling of training gradients? Mean or divide by batchsize? What should it be?
 - [ ] Normalization of the *total* gradient of the weights and biases.
   - can look at the attack code
 
@@ -40,7 +40,8 @@ implementation validation
   - [ ] Who presents what?
 
 Nice to have
-- [ ] ReLU - leaky relu gradient (small pos gradient for relu=0).
+- [x] ReLU - leaky relu gradient (small pos gradient for relu=0).
+  - [ ] Make it work.
 - [ ] Plotting confusion matrix
 
 We are not aiming to win!

@@ -94,9 +94,9 @@ if __name__ == "__main__":
                     
                     #add activation_function thing here also
                     network = NeuralNetwork(
-                        input_size=parameters.INPUT_SIZE,
-                        hidden_size=hidden_size,
-                        output_size=parameters.N_CLASSES,
+                        layer_sizes=(parameters.INPUT_SIZE,
+                                     hidden_size,
+                                     parameters.N_CLASSES),
                         learning_rate=learning_rate
                     )
         
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                     
                     # Record this combination's hyperparameters alongside
                     # its final training loss, as a single tuple.
-                    results.append((hidden_size, learning_rate, mini_batch_size, epochs, standard_history["loss"][-1]))
+                    results.append((hidden_size, learning_rate, mini_batch_size, epochs, standard_history["training_loss"][-1]))
 
     
     

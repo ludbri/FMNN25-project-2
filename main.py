@@ -11,7 +11,7 @@ boolean flags below:
 """
 
 
-from NeuralNetwork import NeuralNetwork, ActivationFuncs
+from NeuralNetwork import NeuralNetwork, relu, relu_derivative
 import NeuralNetworkTraining
 import Plotting
 import testing_mini_batch_sizes
@@ -26,8 +26,8 @@ plotting_loss = True
 test_attack = True
 
 # Hyperparameters / limits for the standard training run
-epochs = 3
-minibatch_size = 64
+epochs = 10
+minibatch_size = 32
 training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
@@ -59,11 +59,12 @@ if __name__ == "__main__":
     print("=" * 60)
 
     network = NeuralNetwork(
-        input_size=parameters.INPUT_SIZE,
-        hidden_size=30,
-        output_size=parameters.N_CLASSES,
-        activation_func=ActivationFuncs.SIGMOID,  # TODO: relu is not working right?
-        learning_rate=32
+        layer_sizes=(parameters.INPUT_SIZE,
+                     30,
+                     parameters.OUTPUT_SIZE),
+        # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
+        # activation_func_gradients=(relu_derivative,) * 2,
+        learning_rate=0.5
     )
     
     

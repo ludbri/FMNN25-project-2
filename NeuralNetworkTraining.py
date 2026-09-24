@@ -52,7 +52,7 @@ def train_network(network: NeuralNetwork,
                   validation_limit: int = 1000) -> HistoryDict:
     """
     Trains a network for a given number of epochs using mini-batch
-    gradient descent, tracking loss and validation accuracy per epoch.
+    gradient descent, tracking loss and validation accuracy per completed epoch.
 
     Parameters
     ----------
@@ -77,7 +77,8 @@ def train_network(network: NeuralNetwork,
     Returns
     -------
     HistoryDict
-        Dictionary with keys "epochs", "loss", and "validation_accuracy",
+        Dictionary with keys "epochs", "training_loss", "validation_loss", 
+            and "validation_accuracy",
         each a list with one entry per completed epoch, suitable for
         passing to the plotting functions.
     """
@@ -87,7 +88,8 @@ def train_network(network: NeuralNetwork,
 
     history = {
         "epochs": [],
-        "loss": [],
+        "training_loss": [],
+        "validation_loss": [],
         "validation_accuracy": []
     }
     
@@ -95,7 +97,6 @@ def train_network(network: NeuralNetwork,
     batches_per_epoch = int(np.ceil(training_limit / minibatch_size))
 
     for epoch in tqdm.trange(epochs, desc="Training epochs"):
-        total_loss = 0.0
         batches = 0
         
         # Iterate over shuffled, one-hot-encoded mini-batches for this epoch
@@ -107,13 +108,17 @@ def train_network(network: NeuralNetwork,
                                      desc="batches",
                                      total= batches_per_epoch,
                                      leave=False):
-            total_loss += network.train_batch(x, y_onehot, epoch_count = epoch)
+            network.learn_batch(x, y_onehot, epoch_count = epoch)
 
             batches += 1
 
-        average_loss = total_loss / batches
+        # evaluate loss on all data
+        for x, y_onehot in minibatches(training_data, n=training_limit):
+            training_loss = network.evaluate_loss(x, y_onehot)
+        for x, y_onehot in minibatches(validation_data, n=validation_limit):
+            validation_loss = network.evaluate_loss(x, y_onehot)
         
-        # Evaluate on the validation set after each epoch
+        # Evaluate on the test and validation sets after each epoch
         correct, total = evaluate(
             network,
             validation_data,
@@ -122,7 +127,8 @@ def train_network(network: NeuralNetwork,
         validation_accuracy = 100.0 * correct / total
 
         history["epochs"].append(epoch + 1)
-        history["loss"].append(average_loss)
+        history["training_loss"].append(training_loss)
+        history["validation_loss"].append(validation_loss)
         history["validation_accuracy"].append(validation_accuracy)
 
         #print(f"Epoch {epoch + 1}/{epochs} completed.")

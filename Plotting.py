@@ -50,14 +50,15 @@ def plot_validation_accuracy(history):
 
 def plot_loss(history):
     """
-    Plots training loss (mean squared error) over training epochs and
+    Plots training and validation loss (mean squared error) over training epochs and
     saves the figure to disk as a PNG.
 
     Parameters
     ----------
     history : dict
-        Dictionary with keys "epochs" (list/array of epoch numbers) and
-        "loss" (list/array of MSE values, one per epoch).
+        Dictionary with keys "epochs" (list/array of epoch numbers),
+        "training_loss" (list/array of MSE values, one per epoch), and
+        "validation_loss" (list/array of MSE values, one per epoch).
 
     Returns
     -------
@@ -65,14 +66,16 @@ def plot_loss(history):
         Displays the plot and saves it to "training_loss_vs_epoch.png".
     """
     plt.figure()
-    plt.plot(history["epochs"], history["loss"], marker="o")
+    plt.plot(history["epochs"], history["training_loss"], marker="o", label="training loss")
+    plt.plot(history["epochs"], history["validation_loss"], marker="o", label="validation loss")
     plt.xlabel("Epoch")
     plt.ylabel("Mean Squared Error")
-    plt.title("Training Loss vs Epoch")
+    plt.title("Training and validation Loss vs Epoch")
     plt.xticks(history["epochs"])
+    plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("training_loss_vs_epoch.png", dpi=150)
+    plt.savefig("loss_vs_epoch.png", dpi=150)
     plt.show()
 
 
