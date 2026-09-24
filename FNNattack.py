@@ -38,28 +38,28 @@ def attack(network: NeuralNetwork,
     """
     stsize = 10**-1
     x = x.copy()
-    y = network.predict(x)
     
     # One-hot vector representing the desired (target) output 
     grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
     grad_target[target] = 1
     # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
-    x = np.asarray(x).reshape(-1, network.input_size)
+    x = np.asarray(x).reshape(-1, network.layer_sizes[0])
 
-    o_prev = np.zeros_like(grad_target)
     i = 0
-    while target != (y := network.predict(x)):
+    while target != network.predict(x):
         i += 1
-        h, o = network.forward(x.T)
-        o_diff = o-o_prev
+        activations = network.forward(x.T)
 
-        # grad of o wrt x
+        # backpropogate gradient of o w.r.t. x
         grad = grad_target
-        # grad =  # o - y
-        grad = grad * network.activation_derivative(o)
-        grad = network.weights_hidden_output.T @ grad
-        grad = grad * network.activation_derivative(h)
-        grad = network.weights_input_hidden.T @ grad
+        for w, act, actgrad in zip(network.layer_weights[::-1],
+                                             activations[:0:-1],
+                                             network.activation_derivatives[::-1]
+                                             ):
+            # gradient of output w.r.t. the input of this layer
+            a_grad = grad * actgrad(act)
+            # gradient w.r.t. the output of the previous layer
+            grad = w.T @ a_grad
 
         # Normalize the size to 1
         grad /= np.linalg.norm(grad, 2)
@@ -69,7 +69,6 @@ def attack(network: NeuralNetwork,
 
         if i % 1000 == 0: 
             print(f"target: {target}, i: {i} xsum {x.sum()}")
-            o_prev = o.copy()
     return x
 
 
