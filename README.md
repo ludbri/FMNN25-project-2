@@ -17,7 +17,12 @@ To do:
 - [x] Proper documentation
 - [ ] add a requirements.txt file!
 
-- [ ] Extension?
+- [ ] Extension
+  -  [ ] allow any number of hidden layers
+  -  [ ] compare 4 output neuron with 10 output neuron
+  -  [ ] allow any activation function to be used
+  -  [ ] allow any loss to be used
+  -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
 - [ ] Evaluate the losses at the end of each epoch, after learning all minibatches.
