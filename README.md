@@ -28,7 +28,7 @@ implementation validation
 - [x] Evaluate the losses at the end of each epoch, after learning all minibatches.
   - [x] Plot training and validation losses together.
 - [x] Scaling of training gradients? Mean or divide by batchsize? What should it be?
-- [ ] Normalization of the *total* gradient of the weights and biases.
+- [x] Normalization of the *total* gradient of the weights and biases.
   - can look at the attack code
 
 - [ ] Task 8 - fine-tuning further (now loss at 10^-3, 0.0019991629169286308)

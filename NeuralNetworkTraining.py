@@ -113,9 +113,13 @@ def train_network(network: NeuralNetwork,
             batches += 1
 
         # evaluate loss on all data
-        for x, y_onehot in minibatches(training_data, n=training_limit):
+        
+            
+        # evaluate loss on all data
+        for x, y_onehot in minibatches(training_data, batch_size=training_limit, n=training_limit):
             training_loss = network.evaluate_loss(x, y_onehot)
-        for x, y_onehot in minibatches(validation_data, n=validation_limit):
+
+        for x, y_onehot in minibatches(validation_data, batch_size=validation_limit, n=validation_limit):
             validation_loss = network.evaluate_loss(x, y_onehot)
         
         # Evaluate on the test and validation sets after each epoch
