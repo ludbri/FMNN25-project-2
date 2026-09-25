@@ -28,7 +28,7 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
     return 1.0 / (1.0 + np.exp(-z)) #applies the sigmoid function
 
 # Derivative of sigmoid
-def sigmoid_derivative(output: np.ndarray) -> np.ndarray:
+def sigmoid_derivative(input: np.ndarray) -> np.ndarray:
     """
     Computes the elementwise gradient of the sigmoid activation function,
     using the identity sigmoid'(x) = sigmoid(x) * (1 - sigmoid(x)).
@@ -45,7 +45,9 @@ def sigmoid_derivative(output: np.ndarray) -> np.ndarray:
         Gradient of the sigmoid function, same shape as `output`.
     """
 
-    return output * (1.0 - output) #applies the gradient
+    # return output * (1.0 - output) #applies the gradient
+    s = sigmoid(input)
+    return s * (1.0 - s) # follows numerical gradient and uses input rather than output
 
 def relu(x: np.ndarray) -> np.ndarray:
     """
@@ -65,7 +67,7 @@ def relu(x: np.ndarray) -> np.ndarray:
 
     return np.maximum(x,0)
 
-def relu_derivative(output: np.ndarray) -> np.ndarray:
+def relu_derivative(input: np.ndarray) -> np.ndarray:
     """
     Computes the elementwise gradient of the ReLU activation function,
     using the ReLU output (relu'(x) = 1 if output > 0 else 0).
@@ -84,10 +86,12 @@ def relu_derivative(output: np.ndarray) -> np.ndarray:
     """
     # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 
     # if x > 0. nan is returned for nan inputs.
-    grad = np.sign(output)
-    # add a small positive gradient for negative outputs.
-    grad += 10**-3
-    return grad
+    # grad = np.sign(output)
+    # # add a small positive gradient for negative outputs.
+    # grad += 10**-3
+    # return grad
+    
+    return np.where(input > 0, 1.0, 0.001)
 
 
 def square_loss(y_pred: np.ndarray,
@@ -145,30 +149,66 @@ LossFunc = Callable[[np.ndarray,np.ndarray], float]
 #   and returns a vector of the gradient with respect to the network output
 LossFuncGrad = Callable[[np.ndarray,np.ndarray], np.ndarray]
 
-# TODO: numerical estimations of gradients, if not provided?
-# TODO: would be easier if the gradient takes the layer input instead of output as argument.
-def _numerical_gradient(func: ActivationFunc) -> ActivationFuncGrad:
-    # TODO: Numerically estimate the gradient of func at x according to some method.
-    raise NotImplementedError("Not yet implemented")
 
-    # Draft below, maybe something like this?
-    # call as: fn_grad = _numerical_gradient(fn)
-    # Then grad = fn_grad(input)
-    def func_grad(input): # <- note, using input to func instead of output...
-        h = 10**-8 * np.eye(input.shape[0])
-        return (func(input+h) - func(input-h)) / 2
+def _numerical_gradient(func: ActivationFunc, eps: float = 1e-06) -> ActivationFuncGrad:
+    
+    '''
+    Computes the elementwise derivative of an activation function
+    using the central difference formula: f'(x) ≈ (f(x + h) - f(x - h)) / (2 * h). (2nd order)
+    
+    Parameters
+    ----------
+    func : ActivationFunc
+        The activation function f(x).
+    eps : float, optional
+        Step size for numerical differentiation. Default is 1e-6 for float64 precision.
+
+    Returns
+    -------
+    ActivationFuncGrad
+        A callable function that takes pre-activation inputs `x` 
+        and returns the elementwise numerical derivative.
+    '''
+
+    # TODO: numerical gradient <- Not sure is there is a way to do with output, adjusted given functions to follow input structure
+    def func_grad(input: np.ndarray) -> np.ndarray:
+        return (func(input + eps) - func(input - eps)) / (2.0 * eps)
     return func_grad
 
-def _numerical_loss_gradient(func: LossFunc) -> LossFuncGrad:
-    # TODO: Numerically estimate the gradient of func at x according to some method.
-    raise NotImplementedError("Not yet implemented")
+def _numerical_loss_gradient(func: LossFunc, eps: float = 1e-6) -> LossFuncGrad:
+    """
+    Numerically computes the gradient of a loss function with respect to y_pred
+    using element-wise central difference.
+    """
+    def func_grad(y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
+        grad = np.zeros_like(y_pred)
+        rows, cols = y_pred.shape
+        
+        # Perturb each element in y_pred individually
+        for i in range(rows):
+            for j in range(cols):
+                orig_val = y_pred[i, j]
+                
+                # Perturb +eps
+                y_pred[i, j] = orig_val + eps
+                loss_plus = func(y_pred, y_true)
+                
+                # Perturb -eps
+                y_pred[i, j] = orig_val - eps
+                loss_minus = func(y_pred, y_true)
+                
+                # Restore original value
+                y_pred[i, j] = orig_val
+                
+                # Central difference derivative
+                grad[i, j] = (loss_plus - loss_minus) / (2.0 * eps)
+                
+        # Scaling adjustment: square_loss computes the AVERAGE loss across batch size N (via np.mean)
+        # Because learn_batch divides by batch_size again during weight update,
+        # multiplying by batch_size aligns the numerical gradient scale with square_loss_gradient.
+        batch_size = y_pred.shape[1]
+        return grad * batch_size
 
-    # Draft below, maybe something like this?
-    # call as: fn_grad = _numerical_loss_gradient(fn)
-    # Then grad = fn_grad(y_pred, y_true)
-    def func_grad(y_pred, y_true):
-        h = 10**-8 * np.eye(y_pred.shape[0]) # wrong dimensionality
-        return (func(y_pred+h, y_true) - func(y_pred-h, y_true)) / 2
     return func_grad
 
 
@@ -298,12 +338,15 @@ class NeuralNetwork:
         # Layer activations:
         # linear transform (weights @ x + bias), followed by activation function
         layer_outputs = [x]
+        pre_activations = []  # Store  preactications z = W @ x + b
 
         for w, b, sigma in zip(self.layer_weights, self.biases, self.activation_funcs):
-            x = sigma(w @ x + b)
+            z = w @ x + b
+            pre_activations.append(z)
+            x = sigma(z)
             layer_outputs.append(x)
 
-        return layer_outputs
+        return layer_outputs, pre_activations
 
 
     # Prediction: output neuron with largest activation
@@ -343,8 +386,8 @@ class NeuralNetwork:
         # forward() expects shape (input_size, n), but x here is (n, input_size),
         # so transpose before passing it through; only the output layer
         # activations are needed for prediction, hidden activations are discarded
-        layer_outputs = self.forward(x.T)
-        outputs = layer_outputs[-1]
+        activations, _ = self.forward(x.T)
+        outputs = activations[-1]
 
         if raw_output:
             return outputs
@@ -434,7 +477,7 @@ class NeuralNetwork:
         batch_size = x.shape[1]
 
         # do the forward pass for the batch
-        activations = self.forward(x)
+        activations, pre_activations = self.forward(x)
 
         # positive(!) gradient of loss function
         backgrad = self.loss_func_derivative(activations[-1], y_true)
@@ -444,13 +487,13 @@ class NeuralNetwork:
         weight_grads = []
         bias_grads = []
 
-        for prev_act, w, act, actgrad in zip(activations[-2::-1],
+        for prev_act, w, z, actgrad in zip(activations[-2::-1],
                                              self.layer_weights[::-1],
-                                             activations[:0:-1],
+                                             pre_activations[::-1],
                                              self.activation_derivatives[::-1]
                                              ):
             # gradient of output w.r.t. the input of this layer
-            a_grad = backgrad * actgrad(act)
+            a_grad = backgrad * actgrad(z)
             # bias grad is now the mean across samples
             bias_grads.append(
                 a_grad.mean(axis=1, keepdims=True)
@@ -462,14 +505,55 @@ class NeuralNetwork:
             backgrad = w.T @ a_grad
 
         # Normalize and update the matrices!
-        # TODO: Should normalization not be shared by all matrices?
-        weight_grads = [self._normalize(g) for g in weight_grads]
-        bias_grads = [self._normalize(g) for g in bias_grads]
+        # following clip grad norm from pytorch (or can use global norm)
+        # forcing each gradients to norm 1.0 prevents the step size from naturally shrinking as the network approaches a local minimum
+        # causing updates to bounce around the minimum
+        
+        def clip_grad_norm(self, weight_grads: list[np.ndarray], bias_grads: list[np.ndarray], max_norm: float = 1.0, eps: float = 1e-8):
+            """
+            Clips global gradient norm to max_norm. If global_norm <= max_norm,
+            gradients remain completely unchanged.
+            """
+            total_sq_norm = sum(np.sum(w ** 2) for w in weight_grads) + \
+                            sum(np.sum(b ** 2) for b in bias_grads)
+            
+            global_norm = np.sqrt(total_sq_norm)
+            
+            clip_coef = max_norm / (global_norm + eps)
+            
+            # Only scale down if global_norm exceeds max_norm
+            if clip_coef < 1.0:
+                weight_grads = [w * clip_coef for w in weight_grads]
+                bias_grads = [b * clip_coef for b in bias_grads]
+                
+            return weight_grads, bias_grads
+        
+        # global norm option too
+        def _normalize_global(self, weight_grads: list[np.ndarray], bias_grads: list[np.ndarray], eps: float = 1e-8):
+            """
+            Rescales all weight and bias gradients together using a single global norm,
+            preserving relative gradient proportions across layers and parameters.
+            """
+            # Calculate sum of squared Frobenius norms across all matrices
+            total_sq_norm = sum(np.sum(w ** 2) for w in weight_grads) + \
+                            sum(np.sum(b ** 2) for b in bias_grads)
+            
+            global_norm = np.sqrt(total_sq_norm)
+            
+            scale = 1.0 / (global_norm + eps)
+            
+            weight_grads = [w * scale for w in weight_grads]
+            bias_grads = [b * scale for b in bias_grads]
+            
+            return weight_grads, bias_grads
 
+
+        weight_grads, bias_grads = clip_grad_norm(self, weight_grads, bias_grads)
         # Learning rate, decayed by epoch count
-        # worth revisiting together.
-        # Q: is this maybe inverted?
-        lr = self.learning_rate / (epoch_count + 1)
+        # for larger training inverse decay
+        # note that for small training fixed lr is sufficient
+        decay_rate = 0.02 
+        lr = self.learning_rate / (1.0 + decay_rate * epoch_count)
 
         # adjust weights
         for i in range(self.depth):
