@@ -1,7 +1,8 @@
 import numpy as np
 from enum import IntEnum, auto
 from typing import Callable
-
+from parameters import BINARY_ENCODING
+from binary import digit_to_binary, binary_to_digit
 
 # Sigmoid activation function
 def sigmoid(x: np.ndarray) -> np.ndarray:
@@ -349,9 +350,14 @@ class NeuralNetwork:
         if raw_output:
             return outputs
         else:
-            # For each sample (column), return the index of the output node
-            # with the highest activation — the predicted class label
-            return np.argmax(outputs, axis=0)
+            if BINARY_ENCODING:
+            
+              return np.array([binary_to_digit(outputs[:, i]) for i in range(outputs.shape[1])])            
+            
+            else:
+                # For each sample (column), return the index of the output node
+                # with the highest activation — the predicted class label
+                return np.argmax(outputs, axis=0)
         
 
     def evaluate_loss(self,
@@ -475,3 +481,17 @@ class NeuralNetwork:
         for i in range(self.depth):
             self.layer_weights[i] -= lr * weight_grads[-i-1]
             self.biases[i] -= lr * bias_grads[-i-1]
+
+
+    def digit_to_binary(digit: int):
+        """Convert a base 10 number (Int) to a np.ndarray of 1's and 0's
+        5 -> [0,1,0,1]
+        """
+        n = digit
+        bin = np.array
+        i = 0
+        while(n>=0):
+            q = n//2
+            res = n - 2*q
+            np.array[i] = res
+            i += 1

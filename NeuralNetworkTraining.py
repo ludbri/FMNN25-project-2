@@ -2,7 +2,8 @@ import numpy as np
 import tqdm
 from dataloading import minibatches, Dataset
 from NeuralNetwork import NeuralNetwork
-
+from parameters import BINARY_ENCODING
+from binary import digit_to_binary
 
 def evaluate(network: NeuralNetwork,
              dataset: Dataset,
@@ -42,6 +43,16 @@ def evaluate(network: NeuralNetwork,
     return correct, limit
 
 HistoryDict = dict[str,list[int|float]]
+
+def encode_labels(y_onehot: np.ndarray) -> np.ndarray:
+    """if BINARY_ENCODING is true encode the y_onehot into binary values
+    else return the regular y_onehot
+    """
+
+    if BINARY_ENCODING:
+        digits = np.argmax(y_onehot, axis=1)
+        return np.array([digit_to_binary(d) for d in digits])
+    return y_onehot
 
 def train_network(network: NeuralNetwork,
                   training_data: Dataset,
@@ -108,15 +119,15 @@ def train_network(network: NeuralNetwork,
                                      desc="batches",
                                      total= batches_per_epoch,
                                      leave=False):
-            network.learn_batch(x, y_onehot, epoch_count = epoch)
+            network.learn_batch(x, encode_labels(y_onehot), epoch_count = epoch)
 
             batches += 1
 
         # evaluate loss on all data
         for x, y_onehot in minibatches(training_data, n=training_limit):
-            training_loss = network.evaluate_loss(x, y_onehot)
+            training_loss = network.evaluate_loss(x, encode_labels(y_onehot))
         for x, y_onehot in minibatches(validation_data, n=validation_limit):
-            validation_loss = network.evaluate_loss(x, y_onehot)
+            validation_loss = network.evaluate_loss(x, encode_labels(y_onehot))
         
         # Evaluate on the test and validation sets after each epoch
         correct, total = evaluate(
