@@ -4,6 +4,16 @@ from typing import Callable
 from parameters import BINARY_ENCODING
 from binary import digit_to_binary, binary_to_digit
 
+
+# Source - https://stackoverflow.com/a/1988024
+# Posted by Raja Selvaraj, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-09-28, License - CC BY-SA 4.0
+
+import sys
+import numpy
+numpy.set_printoptions(threshold=sys.maxsize)
+
+
 # Sigmoid activation function
 def sigmoid(x: np.ndarray) -> np.ndarray:
     """
@@ -346,14 +356,17 @@ class NeuralNetwork:
         # activations are needed for prediction, hidden activations are discarded
         layer_outputs = self.forward(x.T)
         outputs = layer_outputs[-1]
-
+    
         if raw_output:
             return outputs
         else:
             if BINARY_ENCODING:
-            
-              return np.array([binary_to_digit(outputs[:, i]) for i in range(outputs.shape[1])])            
-            
+                print("Shape of binary outputs: {}".format(outputs.shape))
+                bits_matrix = (outputs >= 0.5).astype(int) # (4, 1000)
+                print("Shape of bits matris: {}".format(bits_matrix.shape))
+                
+                print("Bits matrix", bits_matrix)
+                return np.array([binary_to_digit(outputs[:, i]) for i in range(outputs.shape[1])])            
             else:
                 # For each sample (column), return the index of the output node
                 # with the highest activation — the predicted class label
@@ -471,7 +484,6 @@ class NeuralNetwork:
         # TODO: Should normalization not be shared by all matrices?
         weight_grads = [self._normalize(g) for g in weight_grads]
         bias_grads = [self._normalize(g) for g in bias_grads]
-
         # Learning rate, decayed by epoch count
         # worth revisiting together.
         # Q: is this maybe inverted?
@@ -481,17 +493,3 @@ class NeuralNetwork:
         for i in range(self.depth):
             self.layer_weights[i] -= lr * weight_grads[-i-1]
             self.biases[i] -= lr * bias_grads[-i-1]
-
-
-    def digit_to_binary(digit: int):
-        """Convert a base 10 number (Int) to a np.ndarray of 1's and 0's
-        5 -> [0,1,0,1]
-        """
-        n = digit
-        bin = np.array
-        i = 0
-        while(n>=0):
-            q = n//2
-            res = n - 2*q
-            np.array[i] = res
-            i += 1

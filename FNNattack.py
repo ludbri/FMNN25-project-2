@@ -8,6 +8,8 @@ import numpy as np
 from NeuralNetwork import NeuralNetwork
 import parameters
 import matplotlib.pyplot as plt
+from binary import digit_to_binary
+from parameters import BINARY_ENCODING
 
 
 def attack(network: NeuralNetwork,
@@ -38,15 +40,22 @@ def attack(network: NeuralNetwork,
     """
     stsize = 10**-1
     x = x.copy()
-    
-    # One-hot vector representing the desired (target) output 
-    grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
-    grad_target[target] = 1
+
+    if BINARY_ENCODING:
+        bits = np.asarray(digit_to_binary(target), dtype='d').reshape(-1,1) #(4,1)
+        grad_target = 2.0 * bits - 1.0 #Bits that should conver to 1 become +1, bits that should become 0 are set to -1
+    else:
+        # One-hot vector representing the desired (target) output 
+        grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
+        grad_target[target] = 1
     # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
+    # When I try an attack with 4 bit encoding WITHOUT normalizing the gradient
+    # I get a much better (visually more accurate) result
     x = np.asarray(x).reshape(-1, network.layer_sizes[0])
 
+    max_iters = 100000
     i = 0
-    while target != network.predict(x):
+    while target != network.predict(x) and i<max_iters:
         i += 1
         activations = network.forward(x.T)
 
@@ -62,7 +71,7 @@ def attack(network: NeuralNetwork,
             grad = w.T @ a_grad
 
         # Normalize the size to 1
-        grad /= np.linalg.norm(grad, 2)
+        #grad /= np.linalg.norm(grad, 2)
 
         x += stsize * grad.T
         x = np.clip(x, 0., 1.)

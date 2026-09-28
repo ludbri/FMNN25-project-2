@@ -19,11 +19,12 @@ from dataloading import load_mnist
 import parameters
 from FNNattack import attack, make_attacks
 
+
 # Flags controlling which optional sections of the script run
 testing_mini_batch = False
 plotting_accuracy = False
-plotting_loss = True
-test_attack = True
+plotting_loss = False
+test_attack = False
 
 # Hyperparameters / limits for the standard training run
 epochs = 10
@@ -91,8 +92,6 @@ if __name__ == "__main__":
     print("Total:", total)
     print(f"Accuracy: {accuracy:.2f}%")
     
-    
-
 
     
     if testing_mini_batch:

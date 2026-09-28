@@ -38,3 +38,8 @@ def binary_to_digit(bits: np.array):
 
 # bits = np.asarray([1,0,1,1])
 # print("{} to int is {}".format(bits, binary_to_digit(bits)))
+
+# TEST
+# for d in range(10):
+#     assert binary_to_digit(digit_to_binary(d)) == d, d
+#     print("Works for {}".format(d))
