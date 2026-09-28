@@ -113,3 +113,56 @@ def make_attacks(network: NeuralNetwork,
     fig.tight_layout()
 
     plt.show()
+    
+    
+def attack_gsm(network: NeuralNetwork,
+               x: np.ndarray,
+               target: int,
+               epsilon: float = 0.15) -> np.ndarray:
+    """
+    Performs a targeted Gradient Sign Method (GSM) attack on an input image.
+
+    Modifies the input `x` in a single step using the sign of the loss gradient
+    with respect to the input towards the specified target class.
+
+    Parameters
+    ----------
+    network : NeuralNetwork
+        The trained network to attack (its weights are not modified;
+        only the input `x` is perturbed).
+    x : np.ndarray
+        Starting input image, flattened to shape matching `network.layer_sizes[0]`.
+    target : int
+        The target class index the attack tries to force the network to predict.
+    epsilon : float, optional
+        Step size magnitude (perturbation strength) controlling how far
+        pixels are shifted along the gradient sign direction. Default is 0.15.
+
+    Returns
+    -------
+    np.ndarray
+        The perturbed input image array of shape (1, network.layer_sizes[0]),
+        clipped to the valid image range [0, 1].
+    """
+    x = np.asarray(x).copy().reshape(-1, network.layer_sizes[0])
+    
+    # Target label as one-hot
+    y_target = np.zeros((parameters.N_CLASSES, 1))
+    y_target[target] = 1.0
+
+    # Forward pass
+    activations, pre_activations = network.forward(x.T)
+
+    # Backpropagate loss gradient down to input x
+    backgrad = network.loss_func_derivative(activations[-1], y_target)
+    for w, z, actgrad in zip(network.layer_weights[::-1],
+                             pre_activations[::-1],
+                             network.activation_derivatives[::-1]):
+        a_grad = backgrad * actgrad(z)
+        backgrad = w.T @ a_grad
+
+    # Move in the negative direction of the target loss gradient
+    grad_x = backgrad.T  # Shape (1, 784)
+    x_adv = x - epsilon * np.sign(grad_x)
+    
+    return np.clip(x_adv, 0.0, 1.0)
