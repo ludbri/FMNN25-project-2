@@ -365,7 +365,7 @@ class NeuralNetwork:
                 bits_matrix = (outputs >= 0.5).astype(int) # (4, 1000)
                 print("Shape of bits matris: {}".format(bits_matrix.shape))
                 
-                print("Bits matrix", bits_matrix)
+                # print("Bits matrix", bits_matrix)
                 return np.array([binary_to_digit(bits_matrix[:, i]) for i in range(outputs.shape[1])])
 
             else:
