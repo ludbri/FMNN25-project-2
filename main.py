@@ -24,7 +24,7 @@ from FNNattack import attack, make_attacks
 testing_mini_batch = False
 plotting_accuracy = False
 plotting_loss = False
-test_attack = False
+test_attack = True
 
 # Hyperparameters / limits for the standard training run
 epochs = 10

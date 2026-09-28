@@ -366,7 +366,8 @@ class NeuralNetwork:
                 print("Shape of bits matris: {}".format(bits_matrix.shape))
                 
                 print("Bits matrix", bits_matrix)
-                return np.array([binary_to_digit(outputs[:, i]) for i in range(outputs.shape[1])])            
+                return np.array([binary_to_digit(bits_matrix[:, i]) for i in range(outputs.shape[1])])
+
             else:
                 # For each sample (column), return the index of the output node
                 # with the highest activation — the predicted class label

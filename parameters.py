@@ -1,7 +1,7 @@
 
 # List of global parameters
 
-BINARY_ENCODING = False
+BINARY_ENCODING = True
 
 INPUT_SIZE = 784
 OUTPUT_SIZE = 10

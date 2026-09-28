@@ -137,8 +137,6 @@ def train_network(network: NeuralNetwork,
         )
         validation_accuracy = 100.0 * correct / total
 
-
-
         # ---- DIAGNOSTICS (remove when done) ----
         out = network.predict(validation_data[0][:validation_limit], raw_output=True)  # (out_size, n)
         preds = network.predict(validation_data[0][:validation_limit])
@@ -149,8 +147,6 @@ def train_network(network: NeuralNetwork,
         print("  output std: ", np.round(out.std(axis=1), 3))
         print("  prediction counts per digit:", np.bincount(preds, minlength=10))
         # ----------------------------------------
-
-
 
         history["epochs"].append(epoch + 1)
         history["training_loss"].append(training_loss)
