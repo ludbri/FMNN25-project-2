@@ -23,6 +23,7 @@ from FNNattack import attack, make_attacks
 testing_mini_batch = False
 plotting_accuracy = False
 plotting_loss = True
+plot_confusion = True
 test_attack = True
 
 # Hyperparameters / limits for the standard training run
@@ -142,6 +143,12 @@ if __name__ == "__main__":
     if plotting_loss:
         print("\nCreating loss graph...")
         Plotting.plot_loss(standard_history)
+
+    if plot_confusion:
+        print("\nCreating confusion matrix plit...")
+        for (x, y_true), ttl in zip((training_data, validation_data), ("confusion, training", "confusion, validation")):
+            y_pred = network.predict(x)
+            Plotting.confusion_matrix(y_true, y_pred, ttl)
 
     if test_attack:
         # Run an adversarial attack against the trained network, using a

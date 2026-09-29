@@ -48,12 +48,12 @@ def attack(network: NeuralNetwork,
     i = 0
     while target != network.predict(x):
         i += 1
-        activations = network.forward(x.T)
+        post_activations, pre_activations = network.forward(x.T)
 
         # backpropogate gradient of o w.r.t. x
         grad = grad_target
         for w, act, actgrad in zip(network.layer_weights[::-1],
-                                             activations[:0:-1],
+                                             pre_activations[::-1],
                                              network.activation_derivatives[::-1]
                                              ):
             # gradient of output w.r.t. the input of this layer
