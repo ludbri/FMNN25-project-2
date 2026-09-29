@@ -186,7 +186,7 @@ def confusion_matrix(y_true, y_pred):
         
     counts /= counts.sum(axis=1, keepdims=True)
     fig, ax = plt.subplots()
-    ax.matshow(counts, cmap='Greys', title="Confusion matrix")
+    ax.matshow(counts, cmap='Greys')
     ax.set_title("Confusion matrix")
     ticks = list(range(10))
     ax.set_xticks(ticks, ticks)

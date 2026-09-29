@@ -9,30 +9,35 @@ with the lowest final loss.
 
 """
 
-from NeuralNetwork import NeuralNetwork
 import NeuralNetworkTraining
 import numpy as np
-from dataloading import load_mnist
 import parameters
+from NeuralNetwork import NeuralNetwork, sigmoid, sigmoid_derivative
+from dataloading import load_mnist, minibatches
 
 
 training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
 
+parameters.BINARY_ENCODING = False
 
 
 # Hyperparameter search ranges. Comments note the best value found in a
 # previous run of this search (kept for reference).
-hidden_size_tuple = tuple(np.arange(35, 45, 1)) #best 42
-epochs_tuple = tuple(np.arange(5, 20, 1)) #best 19
-mini_batch_size_tuple = (1, 2) #best 1
-learning_rate_tuple = tuple(np.arange(0, 2, 0.1)) #best 0.27
+hidden_size_tuple = range(30, 4, -1) #best 42
+#epochs_tuple = tuple(np.arange(5, 20, 1)) #best 19
+mini_batch_size_tuple = (1, 5, 10) #best 1
+learning_rate_tuple = (0.05, 0.1, 0.2, 0.5) #best 0.27
 
 # also the activation function, now sigma, add here for activation option
 # training procedure, stochastic gradient descent
 
+def identity(x):
+    return x
 
+def identity_derivative(output):
+    return np.ones_like(output)
 
 def extract_first_x(training_data: tuple, 
                     x: int) -> tuple:
@@ -60,13 +65,13 @@ def extract_first_x(training_data: tuple,
     return training_data_modified
 
 
-    
+assert not parameters.BINARY_ENCODING and parameters.OUTPUT_SIZE == 10
 
 if __name__ == "__main__":
 
     dataset_file = "mnist.pkl"
     
-    np.random.seed(42)
+    
     
     print("Loading MNIST dataset...")
     training_data, validation_data, test_data = load_mnist(dataset_file)
@@ -80,6 +85,14 @@ if __name__ == "__main__":
     print("Inputs per image:", len(training_data[0][0]))
     
     results = []
+    
+    np.random.seed(42)
+    network = NeuralNetwork(
+                            layer_sizes=(parameters.INPUT_SIZE, hidden_size, parameters.OUTPUT_SIZE),
+                            activation_funcs=(sigmoid, identity),
+                            activation_func_gradients=(sigmoid_derivative, identity_derivative),
+                            learning_rate=learning_rate
+                        )
 
      # --------------------------------------------------------
     # STANDARD RUN
@@ -119,7 +132,7 @@ if __name__ == "__main__":
 
     
     
-    print(results[1:].min())
-    print(np.where(results == results[1:].min()))
+    best = min(results, key=lambda r: r[4])
+    print(best)
     
 

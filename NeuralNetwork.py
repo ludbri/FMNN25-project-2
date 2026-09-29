@@ -242,9 +242,16 @@ class NeuralNetwork:
         # index 0 is the edges before layer 1.
         self.layer_weights = []
         self.biases = []
+        
+        #?? This should be dependent on which activation function we use, this is for sigmoid
+        for i_size, o_size in zip(layer_sizes[:-1], layer_sizes[1:]):
+            self.layer_weights.append(np.random.randn(o_size, i_size) / np.sqrt(i_size))
+            self.biases.append(np.zeros((o_size, 1)))
+        
+        '''
         for i_size, o_size in zip(layer_sizes[:-1], layer_sizes[1:]):
             self.layer_weights.append(np.random.uniform(-0.5, 0.5, (o_size, i_size)))
-            self.biases.append(np.random.uniform(-0.5, 0.5, (o_size, 1)))
+            self.biases.append(np.random.uniform(-0.5, 0.5, (o_size, 1)))'''
 
         
         # Assigns the activation functions of each layer and their derivatives
@@ -361,9 +368,9 @@ class NeuralNetwork:
             return outputs
         else:
             if BINARY_ENCODING:
-                print("Shape of binary outputs: {}".format(outputs.shape))
+                #print("Shape of binary outputs: {}".format(outputs.shape))
                 bits_matrix = (outputs >= 0.5).astype(int) # (4, 1000)
-                print("Shape of bits matris: {}".format(bits_matrix.shape))
+                #print("Shape of bits matris: {}".format(bits_matrix.shape))
                 
                 # print("Bits matrix", bits_matrix)
                 return np.array([binary_to_digit(bits_matrix[:, i]) for i in range(outputs.shape[1])])
@@ -448,6 +455,7 @@ class NeuralNetwork:
             Current epoch number; used to decay the effective learning rate
             as 1 / (epoch_count + 1).
         """
+        decay = 0.25
         # Transpose so each column is a sample: shape becomes (input_size, n) / (output_size, n)
         x = np.asarray(x).reshape(-1, self.layer_sizes[0]).T
         y_true = np.asarray(y_true).reshape(-1, self.layer_sizes[-1]).T
@@ -481,16 +489,22 @@ class NeuralNetwork:
             )
             backgrad = w.T @ a_grad
 
-        # Normalize and update the matrices!
+        lr = self.learning_rate  # maybe add /(1 + decay*epoch_count)
+
+        for i in range(self.depth):
+            self.layer_weights[i] -= lr * weight_grads[-i-1]
+            self.biases[i] -= lr * bias_grads[-i-1]
+
+        '''# Normalize and update the matrices!
         # TODO: Should normalization not be shared by all matrices?
         weight_grads = [self._normalize(g) for g in weight_grads]
         bias_grads = [self._normalize(g) for g in bias_grads]
         # Learning rate, decayed by epoch count
         # worth revisiting together.
         # Q: is this maybe inverted?
-        lr = self.learning_rate / (epoch_count + 1)
+        lr = self.learning_rate / (epoch_count*decay + 1)
 
         # adjust weights
         for i in range(self.depth):
             self.layer_weights[i] -= lr * weight_grads[-i-1]
-            self.biases[i] -= lr * bias_grads[-i-1]
+            self.biases[i] -= lr * bias_grads[-i-1]'''
