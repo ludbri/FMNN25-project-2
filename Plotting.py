@@ -157,7 +157,7 @@ def plot_batch_time(results):
 # GRAPH 5: Confusion Matrix
 # ============================================================
 
-def confusion_matrix(y_true, y_pred):
+def confusion_matrix(y_true, y_pred, title: str=None):
     """
     Computes and plots the confusion matrix as a greyscale heatmap.
     Rows are true classes, columns are predicted classes. Each row is
@@ -185,9 +185,11 @@ def confusion_matrix(y_true, y_pred):
         counts[y_t,y_p] += 1
         
     counts /= counts.sum(axis=1, keepdims=True)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots()    
     ax.matshow(counts, cmap='Greys')
-    ax.set_title("Confusion matrix")
+    if title is None:
+        title = "Confusion matrix"
+    ax.set_title(title)
     ticks = list(range(10))
     ax.set_xticks(ticks, ticks)
     ax.set_yticks(ticks, ticks)
