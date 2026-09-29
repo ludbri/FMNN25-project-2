@@ -223,3 +223,4 @@ mnist.pkl.gz
 mnist.pkl
 .vscode/*
 *.png
+log.txt

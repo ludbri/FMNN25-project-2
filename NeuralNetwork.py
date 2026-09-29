@@ -1,6 +1,17 @@
 import numpy as np
 from enum import IntEnum, auto
 from typing import Callable
+from parameters import BINARY_ENCODING
+from binary import digit_to_binary, binary_to_digit
+
+
+# Source - https://stackoverflow.com/a/1988024
+# Posted by Raja Selvaraj, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-09-28, License - CC BY-SA 4.0
+
+import sys
+import numpy
+numpy.set_printoptions(threshold=sys.maxsize)
 
 
 # Sigmoid activation function
@@ -271,9 +282,16 @@ class NeuralNetwork:
         # index 0 is the edges before layer 1.
         self.layer_weights = []
         self.biases = []
+        
+        #?? This should be dependent on which activation function we use, this is for sigmoid
+        for i_size, o_size in zip(layer_sizes[:-1], layer_sizes[1:]):
+            self.layer_weights.append(np.random.randn(o_size, i_size) / np.sqrt(i_size))
+            self.biases.append(np.zeros((o_size, 1)))
+        
+        '''
         for i_size, o_size in zip(layer_sizes[:-1], layer_sizes[1:]):
             self.layer_weights.append(np.random.uniform(-0.5, 0.5, (o_size, i_size)))
-            self.biases.append(np.random.uniform(-0.5, 0.5, (o_size, 1)))
+            self.biases.append(np.random.uniform(-0.5, 0.5, (o_size, 1)))'''
 
         
         # Assigns the activation functions of each layer and their derivatives
@@ -386,15 +404,27 @@ class NeuralNetwork:
         # forward() expects shape (input_size, n), but x here is (n, input_size),
         # so transpose before passing it through; only the output layer
         # activations are needed for prediction, hidden activations are discarded
+        layer_outputs = self.forward(x.T)
+        outputs = layer_outputs[-1]
+    
         activations, _ = self.forward(x.T)
         outputs = activations[-1]
 
         if raw_output:
             return outputs
         else:
-            # For each sample (column), return the index of the output node
-            # with the highest activation — the predicted class label
-            return np.argmax(outputs, axis=0)
+            if BINARY_ENCODING:
+                #print("Shape of binary outputs: {}".format(outputs.shape))
+                bits_matrix = (outputs >= 0.5).astype(int) # (4, 1000)
+                #print("Shape of bits matris: {}".format(bits_matrix.shape))
+                
+                # print("Bits matrix", bits_matrix)
+                return np.array([binary_to_digit(bits_matrix[:, i]) for i in range(outputs.shape[1])])
+
+            else:
+                # For each sample (column), return the index of the output node
+                # with the highest activation — the predicted class label
+                return np.argmax(outputs, axis=0)
         
 
     def evaluate_loss(self,
@@ -471,6 +501,7 @@ class NeuralNetwork:
             Current epoch number; used to decay the effective learning rate
             as 1 / (epoch_count + 1).
         """
+        decay = 0.25
         # Transpose so each column is a sample: shape becomes (input_size, n) / (output_size, n)
         x = np.asarray(x).reshape(-1, self.layer_sizes[0]).T
         y_true = np.asarray(y_true).reshape(-1, self.layer_sizes[-1]).T
@@ -504,58 +535,22 @@ class NeuralNetwork:
             )
             backgrad = w.T @ a_grad
 
-        # Normalize and update the matrices!
-        # following clip grad norm from pytorch (or can use global norm)
-        # forcing each gradients to norm 1.0 prevents the step size from naturally shrinking as the network approaches a local minimum
-        # causing updates to bounce around the minimum
-        
-        def clip_grad_norm(self, weight_grads: list[np.ndarray], bias_grads: list[np.ndarray], max_norm: float = 1.0, eps: float = 1e-8):
-            """
-            Clips global gradient norm to max_norm. If global_norm <= max_norm,
-            gradients remain completely unchanged.
-            """
-            total_sq_norm = sum(np.sum(w ** 2) for w in weight_grads) + \
-                            sum(np.sum(b ** 2) for b in bias_grads)
-            
-            global_norm = np.sqrt(total_sq_norm)
-            
-            clip_coef = max_norm / (global_norm + eps)
-            
-            # Only scale down if global_norm exceeds max_norm
-            if clip_coef < 1.0:
-                weight_grads = [w * clip_coef for w in weight_grads]
-                bias_grads = [b * clip_coef for b in bias_grads]
-                
-            return weight_grads, bias_grads
-        
-        # global norm option too
-        def _normalize_global(self, weight_grads: list[np.ndarray], bias_grads: list[np.ndarray], eps: float = 1e-8):
-            """
-            Rescales all weight and bias gradients together using a single global norm,
-            preserving relative gradient proportions across layers and parameters.
-            """
-            # Calculate sum of squared Frobenius norms across all matrices
-            total_sq_norm = sum(np.sum(w ** 2) for w in weight_grads) + \
-                            sum(np.sum(b ** 2) for b in bias_grads)
-            
-            global_norm = np.sqrt(total_sq_norm)
-            
-            scale = 1.0 / (global_norm + eps)
-            
-            weight_grads = [w * scale for w in weight_grads]
-            bias_grads = [b * scale for b in bias_grads]
-            
-            return weight_grads, bias_grads
+        lr = self.learning_rate  # maybe add /(1 + decay*epoch_count)
 
+        for i in range(self.depth):
+            self.layer_weights[i] -= lr * weight_grads[-i-1]
+            self.biases[i] -= lr * bias_grads[-i-1]
 
-        weight_grads, bias_grads = clip_grad_norm(self, weight_grads, bias_grads)
+        '''# Normalize and update the matrices!
+        # TODO: Should normalization not be shared by all matrices?
+        weight_grads = [self._normalize(g) for g in weight_grads]
+        bias_grads = [self._normalize(g) for g in bias_grads]
         # Learning rate, decayed by epoch count
-        # for larger training inverse decay
-        # note that for small training fixed lr is sufficient
-        decay_rate = 0.02 
-        lr = self.learning_rate / (1.0 + decay_rate * epoch_count)
+        # worth revisiting together.
+        # Q: is this maybe inverted?
+        lr = self.learning_rate / (epoch_count*decay + 1)
 
         # adjust weights
         for i in range(self.depth):
             self.layer_weights[i] -= lr * weight_grads[-i-1]
-            self.biases[i] -= lr * bias_grads[-i-1]
+            self.biases[i] -= lr * bias_grads[-i-1]'''

@@ -19,6 +19,7 @@ from dataloading import load_mnist
 import parameters
 from FNNattack import attack, make_attacks
 
+
 # Flags controlling which optional sections of the script run
 testing_mini_batch = False
 plotting_accuracy = False
@@ -65,7 +66,7 @@ if __name__ == "__main__":
                      parameters.OUTPUT_SIZE),
         # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
         # activation_func_gradients=(relu_derivative,) * 2,
-        learning_rate=0.5
+        learning_rate=0.3
     )
     
     
@@ -92,8 +93,6 @@ if __name__ == "__main__":
     print("Total:", total)
     print(f"Accuracy: {accuracy:.2f}%")
     
-    
-
 
     
     if testing_mini_batch:
