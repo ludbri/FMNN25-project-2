@@ -32,11 +32,12 @@ implementation validation
   - can look at the attack code
 
 - [ ] Task 8 - fine-tuning further (now loss at 10^-3, 0.0019991629169286308)
-    [ ] More for loops (act-funcs, learning rates)!
+   - [ ] More for loops (act-funcs, learning rates)!
          - Learning rates are added!
-    [x] Train until loss no longer changes (while loop) + max epoch count
-    [x] We should be able to achieve 10**-8
-          We are able to with 100000 epochs
+    - [x] Train until loss no longer changes (while loop) + max epoch count
+    - [x] We should be able to achieve 10**-8
+         - We are able to with 100000 epochs
+         - We get loss=9.390e-08, with hidden=30: epochs=2701, lr=0.5, batch=2
 
 - [ ] Presentation? Readme-style.
   - [ ] Who presents what?
