@@ -145,39 +145,6 @@ def attack_retrain(
 
     return network, history 
         
-if __name__ == "__main__":
-    from dataloading import load_mnist  # Assuming your dataset loader function
 
-    dataset_file = "mnist.pkl"
-
-    print("Loading MNIST dataset...")
-    training_data, validation_data, test_data = load_mnist(dataset_file)
-
-    # Initialize and train initial network
-    input_size = training_data[0].shape[1]
-    output_size = 4 if parameters.BINARY_ENCODING else parameters.N_CLASSES
-    
-    net = NeuralNetwork(layer_sizes=(input_size, 64, output_size))
-    
-    print("--- Initial Training ---")
-    train_network(net, training_data, validation_data, epochs=3)
-
-    # Evaluate initial accuracy on clean data
-    corr, total = evaluate(net, validation_data)
-    print(f"Pre-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
-
-    # Retrain network using adversarial data generated via `attack`
-    print("\n--- Starting Adversarial Retraining ---")
-    net, history = attack_retrain(
-        network=net,
-        training_data=training_data,
-        validation_data=validation_data,
-        num_adv_samples=100,
-        epochs=3
-    )
-
-    # Final Evaluation
-    corr, total = evaluate(net, validation_data)
-    print(f"\nPost-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
     
     
