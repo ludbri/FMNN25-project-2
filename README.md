@@ -18,11 +18,22 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 - ``FNNattack`` - functions for making a single attack against the network with some target label, and a function for making an attack with each possible target label and plot the results.
 - ``Plotting`` - functions for generating plots of training performance.
 - ``task8`` - functions for searching over hyperparameters to find low training loss in few epochs.
-- ``task8_v2`` - updated version of ``task8``.
 - ``testing_mini_batch_sizes`` - old version of ``task8``.
+- ``AttackDataTraining`` - functions to train model using attacked data.
 
+# Results for task 8
+- Using a sigmoid function for the hidden layer and an identity function for the output layer, the loss goes below 10^-8, using the parameters: hidden layers
+- The least possible hidden layers obtained with a loss below 10^-8 is ??, with hidden layers=??, learning rate=??, decay=??, batch size ?? and with the sigmoid function for hidden layers and identity function for output layer.
 
 # Contributions
+Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
+- Anna: task 8, general debugging and adjustments to reduce loss and increase accuracy, documentation, file organization, binary decoding and encoding
+- Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
+- Juan: ... 
+- Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
+- Tommaso: ... 
+
+# 
 
 
 # To do:
@@ -35,7 +46,8 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
   -  [x] compare 4 output neuron with 10 output neuron
   -  [x] allow any activation function to be used
   -  [x] allow any loss to be used
-  -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)
+     -  [x] Add example
+  -  [x] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
 - [x] Evaluate the losses at the end of each epoch, after learning all minibatches.

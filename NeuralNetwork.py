@@ -142,7 +142,7 @@ class NeuralNetwork:
                 self.loss_func_derivative = loss_func_gradient  # This returns positive gradient
 
 
-    def forward(self, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def forward(self, x: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """
         Passes a set of inputs forwards through the network.
     
@@ -154,8 +154,11 @@ class NeuralNetwork:
     
         Returns
         -------
-        layer_outputs : np.ndarray
+        layer_outputs : list[np.ndarray]
             Output activations of each layer, including the input layer.
+
+        pre_activations : list[np.ndarray]
+            Ihe inputs to the activation function of each layer, not including the input layer.
         """
         
         # Ensure x is an ndarray (handles lists/other array-likes passed in)
@@ -191,13 +194,13 @@ class NeuralNetwork:
             Input array of shape (n, input_size), where n is the number
             of samples.
 
-        one_hot: bool
+        raw_output: bool
             Flag for if the returned prediction should be the raw network output.
     
         Returns
         -------
         np.ndarray
-            Array of shape (n,) containing, for each sample, the index of
+            Array of shape (output_size,n) if raw_output (or size (n,) if not raw_output) containing, for each sample, the index of
             the output node with the largest activation.
         """
         
