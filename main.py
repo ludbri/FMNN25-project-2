@@ -18,6 +18,7 @@ import testing_mini_batch_sizes
 from dataloading import load_mnist
 import parameters
 from FNNattack import make_attacks
+import AttackDataTraining
 
 
 # Flags controlling which optional sections of the script run
@@ -26,6 +27,7 @@ plotting_accuracy = False
 plotting_loss = True
 plot_confusion = False
 test_attack = True
+train_attack = False
 
 # Hyperparameters / limits for the standard training run
 epochs = 10
@@ -149,3 +151,35 @@ if __name__ == "__main__":
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
         make_attacks(network, x0)
+        
+    if train_attack:
+        # Initialize and train initial network
+        input_size = training_data[0].shape[1]
+        output_size = 4 if parameters.BINARY_ENCODING else parameters.N_CLASSES
+        
+        net = NeuralNetwork(layer_sizes=(input_size, 64, output_size))
+        
+        print("--- Initial Training ---")
+        NeuralNetworkTraining.train_network(net, training_data, validation_data, epochs=3)
+
+        # Evaluate initial accuracy on clean data
+        corr, total = NeuralNetworkTraining.evaluate(net, validation_data)
+        print(f"Pre-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
+
+        # Retrain network using adversarial data generated via `attack`
+        print("\n--- Starting Adversarial Retraining ---")
+        net, history = AttackDataTraining.attack_retrain(
+            network=net,
+            training_data=training_data,
+            validation_data=validation_data,
+            num_adv_samples=100,
+            epochs=3
+        )
+
+        # Final Evaluation
+        corr, total = NeuralNetworkTraining.evaluate(net, validation_data)
+        print(f"\nPost-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
+        
+        attack_image_index = 1
+        x0 = training_data[0][attack_image_index]
+        make_attacks(network, x0, attack = "negative_gradient" )
