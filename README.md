@@ -29,7 +29,7 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
 - Anna: task 8, general debugging and adjustments to reduce loss and increase accuracy, documentation, file organization, binary decoding and encoding
 - Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
-- Juan: ... 
+- Juan: helped with task 7 and generalizing the code to handle 4-bit encoding for extension task 2
 - Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
 - Tommaso: ... 
 
