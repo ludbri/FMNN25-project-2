@@ -23,6 +23,14 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 
 
 # Contributions
+Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
+- Anna: ... 
+- Annelies: ... 
+- Juan: ... 
+- Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation, ...
+- Tommaso: ... 
+
+# 
 
 
 # To do:
@@ -35,6 +43,7 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
   -  [x] compare 4 output neuron with 10 output neuron
   -  [x] allow any activation function to be used
   -  [x] allow any loss to be used
+     -  [ ] Add example
   -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
