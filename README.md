@@ -28,7 +28,7 @@ Everyone contributed everywhere with discussions. Areas where individuals worked
 - Anna: ... 
 - Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
 - Juan: ... 
-- Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation, ...
+- Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
 - Tommaso: ... 
 
 # 
@@ -44,7 +44,7 @@ Everyone contributed everywhere with discussions. Areas where individuals worked
   -  [x] compare 4 output neuron with 10 output neuron
   -  [x] allow any activation function to be used
   -  [x] allow any loss to be used
-     -  [ ] Add example
+     -  [x] Add example
   -  [x] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
