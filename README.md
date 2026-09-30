@@ -31,7 +31,7 @@ Everyone contributed everywhere with discussions. Areas where individuals worked
 - Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
 - Juan: helped with task 7 and generalizing the code to handle 4-bit encoding for extension task 2
 - Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
-- Tommaso: initial draft for the neural network i.e. task 1-6 in the original project
+- Tommaso: did the basis of the network solving task 1 and task 2. I could then plot Validation Accuracy vs Epoch, Training loss vs epoch,Mini-batch size vs training time,Mini-batch size vs validation accuracy. So I reapeted the loop for different batch sizes.
 
 # 
 
