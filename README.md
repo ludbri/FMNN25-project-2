@@ -18,7 +18,6 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 - ``FNNattack`` - functions for making a single attack against the network with some target label, and a function for making an attack with each possible target label and plot the results.
 - ``Plotting`` - functions for generating plots of training performance.
 - ``task8`` - functions for searching over hyperparameters to find low training loss in few epochs.
-- ``task8_v2`` - updated version of ``task8``.
 - ``testing_mini_batch_sizes`` - old version of ``task8``.
 - ``AttackDataTraining`` - functions to train model using attacked data.
 
