@@ -23,7 +23,7 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 
 # Results for task 8
 - Using a sigmoid function for the hidden layer and an identity function for the output layer, the loss goes below 10^-8, using the parameters: hidden layers
-- The least possible hidden layers obtained, with a loss below 10^-8, was 10 hidden layers, using 1409 epochs, learning rate=0.1, decay=0, batch size 1 and with the sigmoid function for hidden layers and identity function for output layer.
+- The least possible hidden layers obtained, with a loss below 10^-8, was 9 hidden layers, using 1824 epochs, learning rate=0.05, decay=0, batch size=1 and with the sigmoid function for hidden layers and identity function for output layer.
 
 # Contributions
 Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
