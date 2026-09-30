@@ -21,10 +21,10 @@ from FNNattack import attack, make_attacks
 
 
 # Flags controlling which optional sections of the script run
-testing_mini_batch = False
-plotting_accuracy = False
+testing_mini_batch = True
+plotting_accuracy = True
 plotting_loss = True
-plot_confusion = False
+plot_confusion = True
 test_attack = True
 
 # Hyperparameters / limits for the standard training run

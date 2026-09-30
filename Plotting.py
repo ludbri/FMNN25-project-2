@@ -83,10 +83,9 @@ def plot_loss(history):
 # GRAPH 3: MINI-BATCH SIZE VS VALIDATION ACCURACY
 # ============================================================
 
-def plot_batch_accuracy(results):
+def plot_batch_accuracy(results, ax=None, title_prefix=None):
     """
-    Plots final validation accuracy against mini-batch size and saves
-    the figure to disk as a PNG.
+    Plots final validation accuracy against mini-batch size.
 
     Parameters
     ----------
@@ -94,36 +93,40 @@ def plot_batch_accuracy(results):
         Dictionary keyed by mini-batch size, where each value is a dict
         containing at least a "final_accuracy" key (validation accuracy,
         as a percentage, achieved at that batch size).
-
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw into. If None, creates and shows a standalone figure
+    title_prefix: str (optional)
+        Add a prefix to the axe title (optional)
     Returns
     -------
     None
-        Displays the plot and saves it to "mini_batch_vs_accuracy.png".
     """
-    # Extract batch sizes and their corresponding final accuracies, in matching order
     batch_sizes = list(results.keys())
     accuracies = [results[b]["final_accuracy"] for b in batch_sizes]
 
-    plt.figure()
-    plt.plot(batch_sizes, accuracies, marker="o")
-    plt.xlabel("Mini-batch size")
-    plt.ylabel("Final Validation Accuracy (%)")
-    plt.title("Mini-batch Size vs Validation Accuracy")
-    plt.xticks(batch_sizes)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig("mini_batch_vs_accuracy.png", dpi=150)
-    plt.show()
+    standalone = ax is None
+    if standalone:
+        fig, ax = plt.subplots()
 
+    ax.plot(batch_sizes, accuracies, marker="o")
+    ax.set_xlabel("Mini-batch size")
+    ax.set_ylabel("Final Validation Accuracy (%)")
+    ax.set_title(f"{title_prefix} Batch Accuracy vs Epoch")
+    ax.set_xticks(batch_sizes)
+    ax.grid(True)
+
+    if standalone:
+        fig.tight_layout()
+        fig.savefig("mini_batch_vs_accuracy.png", dpi=150)
+        plt.show()
 
 # ============================================================
 # GRAPH 4: MINI-BATCH SIZE VS TRAINING TIME
 # ============================================================
 
-def plot_batch_time(results):
+def plot_batch_time(results, ax=None, title_prefix=None):
     """
-    Plots training time against mini-batch size and saves the figure
-    to disk as a PNG.
+    Plots training time against mini-batch size.
 
     Parameters
     ----------
@@ -131,27 +134,34 @@ def plot_batch_time(results):
         Dictionary keyed by mini-batch size, where each value is a dict
         containing at least a "time" key (training time in seconds for
         that batch size).
+    ax : matplotlib.axes.Axes, optional
+        Axes to draw into. If None, creates and shows a standalone figur
+    title_prefix: str (optional)
+        Add a prefix to the axe title (optional)
+
 
     Returns
     -------
     None
-        Displays the plot and saves it to "mini_batch_vs_time.png".
     """
-    # Extract batch sizes and their corresponding training times, in matching order
     batch_sizes = list(results.keys())
     times = [results[b]["time"] for b in batch_sizes]
 
-    plt.figure()
-    plt.plot(batch_sizes, times, marker="o")
-    plt.xlabel("Mini-batch size")
-    plt.ylabel("Training Time (seconds)")
-    plt.title("Mini-batch Size vs Training Time")
-    plt.xticks(batch_sizes)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig("mini_batch_vs_time.png", dpi=150)
-    plt.show()
+    standalone = ax is None
+    if standalone:
+        fig, ax = plt.subplots()
 
+    ax.plot(batch_sizes, times, marker="o")
+    ax.set_xlabel("Mini-batch size")
+    ax.set_ylabel("Training Time (seconds)")
+    ax.set_title(f"{title_prefix} Batch Training Time vs Epoch")
+    ax.set_xticks(batch_sizes)
+    ax.grid(True)
+
+    if standalone:
+        fig.tight_layout()
+        fig.savefig("mini_batch_vs_time.png", dpi=150)
+        plt.show()
 
 # ============================================================
 # GRAPH 5: Confusion Matrix
