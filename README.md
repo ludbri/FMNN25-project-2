@@ -20,6 +20,7 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 - ``task8`` - functions for searching over hyperparameters to find low training loss in few epochs.
 - ``task8_v2`` - updated version of ``task8``.
 - ``testing_mini_batch_sizes`` - old version of ``task8``.
+- ``AttackDataTraining`` - functions to train model using attacked data.
 
 
 # Contributions
