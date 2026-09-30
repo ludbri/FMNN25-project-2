@@ -11,9 +11,10 @@ fewest epochs, then smallest final loss.
 """
 
 import numpy as np
+from functools import partial
 
 import parameters
-from NeuralNetwork import NeuralNetwork, sigmoid, sigmoid_derivative
+from NeuralNetwork import NeuralNetwork, sigmoid, sigmoid_derivative, relu, relu_derivative
 from dataloading import load_mnist, minibatches
 
 # Task 8 requires 10 output neurons, so binary encoding must be OFF.
@@ -31,6 +32,27 @@ def identity_derivative(output):
     return np.ones_like(output)
 
 
+def step(x):
+    return np.where(x>0, 1, 0)
+
+def leaky_step_derivative(x,grad):
+    return grad*np.ones_like(x)
+
+def mod_step(x, grad):
+    """
+    returns
+        grad*x + 1  for x<-offset,
+        0           for -offset<x<0, and
+        1           for x>0,
+    where offset = 1/grad
+    """
+    return np.where(x>0, 1, np.where(x<-(1/grad),grad*x+1,0))
+
+def mod_step_surrogate_derivative(x, grad):
+    """derivative of the surrogate function f(x) = grad*x + 1."""
+    return grad * np.ones_like(x)
+
+
 def train_until_threshold(train_data, hidden_size, learning_rate,
                           mini_batch_size, max_epochs, seed=0):
     """
@@ -38,15 +60,16 @@ def train_until_threshold(train_data, hidden_size, learning_rate,
     epoch_reached is the first epoch (1-based) with loss < THRESHOLD, or None.
     """
     np.random.seed(seed)
+    grad = 1
     network = NeuralNetwork(
                             layer_sizes=(parameters.INPUT_SIZE, 
                                          hidden_size, 
                                          parameters.OUTPUT_SIZE),
                             
                             # sigmoid hidden layer, linear output layer
-                            activation_funcs=(sigmoid, identity),
+                            activation_funcs=(sigmoid, partial(mod_step, grad=grad)),
                             activation_func_gradients=(sigmoid_derivative,
-                                                       identity_derivative),
+                                                       partial(mod_step_surrogate_derivative, grad=grad)),
                             learning_rate=learning_rate,
                             )
 
@@ -84,20 +107,22 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------
     # STEP 2: shrink the hidden layer, trying a few learning rates each
     # ------------------------------------------------------------------
-    hidden_sizes = range(30, 4, -1)
-    learning_rates = (0.05, 0.1, 0.2, 0.5, 1, 3)
-    mini_batch_sizes = (1,2, 5, 10, 25)
+    hidden_sizes = range(10, 0, -1)
+    learning_rates = (0.1, 0.2, 1, 10, 10**2, 10**3)
+    mini_batch_sizes = (1,2, 5, 10, 25, 50)
     max_epochs = 5000
 
     winners = []   # (hidden_size, epochs, final_loss, lr, batch)
     for hidden_size in hidden_sizes:
         found = []
+        best_epochs = max_epochs
         for lr in learning_rates:
             for mb in mini_batch_sizes:
                 epoch, loss, _ = train_until_threshold(
-                    train_50, hidden_size, lr, mb, max_epochs)
+                    train_50, hidden_size, lr, mb, best_epochs)
                 if epoch is not None:
                     found.append((hidden_size, epoch, loss, lr, mb))
+                    best_epochs = epoch
         if not found:
             print(f"hidden={hidden_size}: no setting reached {THRESHOLD:g}")
             break                      # smaller layers are unlikely to work
