@@ -1,10 +1,9 @@
 
 import numpy as np
 
-
 def digit_to_binary(digit: int, min_bits: int = 4):
     """Convert a base 10 number (Int) to a np.ndarray of 1's and 0's
-    5 -> [0,1,0,1] 
+    5 -> [0,1,0,1]
     """
     n = digit
     bits = []
@@ -21,16 +20,31 @@ def digit_to_binary(digit: int, min_bits: int = 4):
         
     return np.asarray(bits[::-1])
 
-# ALL THE 4-BIT REPRESENTATION OF NUMBERS 0-9
 
-codes = np.array([digit_to_binary(d) for d in range(10)])
+valid_binary_seq = np.array([digit_to_binary(d) for d in range(10)])
 
-def binary_to_digit(bits: np.array):
-    """Take a np.array as input with 4 floats as bits, take the distance to all 
-    4-bit codes (0-9) and return the int value of the one with the lowest distance. 
-    """
-    dists = np.sum((codes - bits) ** 2, axis=1)
-    return int(np.argmin(dists))
+def closest_digit_from_binary(seq: np.ndarray):
+    '''
+    Returns the digit which has the smallest euclidian distance between its 
+    corresponding binary sequence and seq.
+
+    Parameters
+    ----------
+    seq : ndarray
+        A binary sequence
+
+    Returns
+    -------
+    int
+        The digit for which its binary sequence has the smallest euclidian 
+        distance to seq.
+    '''
+    
+    distances = np.linalg.norm(valid_binary_seq - seq, axis=1)
+    return int(np.argmin(distances))
+
+# bits = np.asarray([1,0,1,1])
+# print("{} to int is {}".format(bits, closest_digit_from_binary(bits)))
 
 # TEST
 # for d in range(10):
