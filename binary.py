@@ -43,10 +43,3 @@ def closest_digit_from_binary(seq: np.ndarray):
     distances = np.linalg.norm(valid_binary_seq - seq, axis=1)
     return int(np.argmin(distances))
 
-# bits = np.asarray([1,0,1,1])
-# print("{} to int is {}".format(bits, closest_digit_from_binary(bits)))
-
-# TEST
-# for d in range(10):
-#     assert binary_to_digit(digit_to_binary(d)) == d, d
-#     print("Works for {}".format(d))

@@ -48,9 +48,7 @@ def attack(network: NeuralNetwork,
         # One-hot vector representing the desired (target) output 
         grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
         grad_target[target] = 1
-    # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
-    # When I try an attack with 4 bit encoding WITHOUT normalizing the gradient
-    # I get a much better (visually more accurate) result
+
     x = np.asarray(x).reshape(-1, network.layer_sizes[0])
 
     max_iters = 100000
@@ -76,9 +74,7 @@ def attack(network: NeuralNetwork,
         x += stsize * grad.T
         x = np.clip(x, 0., 1.)
 
-        if i % 100 == 0 and BINARY_ENCODING:
-            print(f"target: {target}, i: {i} xsum {x.sum()}")            
-        elif i % 1000 == 0: 
+        if i % 1000 == 0: 
             print(f"target: {target}, i: {i} xsum {x.sum()}")
     return x
 
@@ -86,9 +82,7 @@ def attack(network: NeuralNetwork,
 
 def make_attacks(network: NeuralNetwork,
                  x: np.ndarray,
-                 fig=None,
-                 title=None,
-                 att: str = "target_attack"):
+                 attack: str = "target_attack"):
     """
     Runs the `attack` function against every possible target class for
     a single starting image, then displays the original image alongside
@@ -103,8 +97,8 @@ def make_attacks(network: NeuralNetwork,
         A single starting input image (flattened).
     attack: str, default="target_attack"
         The attack chosen to be used
-        "target_attack" : specifies a targeted attack
-        "negative_gradient" : specifies taking a step in the negative gradient direction
+        - "target_attack" : specifies a targeted attack
+        - "negative_gradient" : specifies taking a step in the negative gradient direction
 
     Returns
     -------
@@ -113,20 +107,16 @@ def make_attacks(network: NeuralNetwork,
     """
     xs = []
     for y_target in range(parameters.N_CLASSES):
-        if att == "target_attack":
+        if attack == "target_attack":
             xs.append(attack(network, x, y_target))
             
-        elif att == "negative_gradient":
-            xs.append(attack_negative_gradient(network, x))
+        elif attack == "negative_gradient":
+            xs.append(attack_negative_gradient(network, x, y_target))
             
         else:
-            raise ValueError(f"Unknown attack: {att}")
+            raise ValueError(f"Unknown attack: {attack}")
 
-    input_fig_is_None = fig is None
-    if input_fig_is_None:
-        fig = plt.figure(figsize=(16,10))
-
-    axes = fig.subplots(3,5)
+    fig, axes = plt.subplots(3,5, figsize=(16,10))
     axsize = int(np.sqrt(x.size))
     axes[0,2].imshow(x.reshape(axsize, axsize), cmap="Greys")
     axes[0,2].set_title(f"start, predicted: {network.predict(x)}")
@@ -139,9 +129,9 @@ def make_attacks(network: NeuralNetwork,
         axes[2,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
         axes[2,i].set_title(f"start, predicted: {network.predict(xi)}")
 
-    # fig.tight_layout()
-    if input_fig_is_None:
-        plt.show()
+    fig.tight_layout()
+
+    plt.show()
     
     
 def attack_negative_gradient(
@@ -152,8 +142,8 @@ def attack_negative_gradient(
     ) -> np.ndarray:
     '''
     Performs an untargeted attack by taking steps along the negative gradient
-    of the currently predicted class, pushing the network to change its prediction.
-
+    of the currently predicted class, pushing the network to change its prediction
+    
     Parameters
     ----------
     network : NeuralNetwork
@@ -161,14 +151,16 @@ def attack_negative_gradient(
         only the input `x` is perturbed).
     x : np.ndarray
         Starting input image of shape (1, input_size) or flat array.
-    step_size : float, default=0.01
-        Magnitude of perturbation added per iteration.
-    max_iters : int, default=200
-        Maximum iterations before stopping
+   step_size : float, default=0.01
+       Magnitude of perturbation added per iteration.
+   max_iters : int, default=200
+       Maximum iterations before stopping
+       
     Returns
     -------
     np.ndarray
-        The perturbed input imagePerturbed input image clipped to valid range [0, 1].
+    
+    The perturbed input imagePerturbed input image clipped to valid range [0, 1].
     '''
     
     x = np.asarray(x).copy().reshape(1, network.layer_sizes[0])
@@ -206,3 +198,7 @@ def attack_negative_gradient(
         x = np.clip(x,0.0, 1.0)
         
         return x
+    
+    
+    
+    

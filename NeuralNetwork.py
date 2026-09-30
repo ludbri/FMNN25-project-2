@@ -21,13 +21,6 @@ from loss_activation_and_error_functions import (sigmoid, sigmoid_derivative,
                                            _numerical_gradient, _numerical_loss_gradient)
 
 
-
-
-
-
-
-
-
 class NeuralNetwork:
     # 3-layer network: INPUT -> HIDDEN -> OUTPUT
     def __init__(self, 
@@ -37,7 +30,7 @@ class NeuralNetwork:
                  loss_func: LossFunc = None,
                  loss_func_gradient: LossFuncGrad = None,
                  learning_rate: float = 0.3,
-                 learning_rate_decay = 0.25):
+                 learning_rate_decay: float = 0.0):
         """
         Instantiate a feed-forward neural network of the specified dimensions 
         and activation functions.Neuron layers do NOT include a bias term.
@@ -48,7 +41,7 @@ class NeuralNetwork:
 
         activation_funcs:
             the activation functions to use in each layer.
-            TODO: If a single function is provided, it is used for all non-input layers.
+            If a single function is provided, it is used for all non-input layers.
             If None, defaults to sigmoid activation.
 
         activation_func_gradients:
@@ -68,11 +61,15 @@ class NeuralNetwork:
             a callable function for the gradient of the loss function,
             It is passed the predicted and true label encodings.
             Must be provided if loss_func is provided.
-                TODO: could implement a numerical differences method.
             If None, defaults to the gradient of the square error loss.
 
         learning_rate:
-            learning rate divisor. TODO: more on this.
+            learning rate divisor. 
+        
+        learning_rate_decay:
+            the parameter defining the decay of the learning rate as epochs 
+            increases. The final learning rate = learning_rate/(1 + decay*epoch_count).
+            The default value is 0.
         """
         
         
@@ -142,7 +139,7 @@ class NeuralNetwork:
                 self.loss_func_derivative = loss_func_gradient  # This returns positive gradient
 
 
-    def forward(self, x: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    def forward(self, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Passes a set of inputs forwards through the network.
     
@@ -154,11 +151,8 @@ class NeuralNetwork:
     
         Returns
         -------
-        layer_outputs : list[np.ndarray]
+        layer_outputs : np.ndarray
             Output activations of each layer, including the input layer.
-
-        pre_activations : list[np.ndarray]
-            Ihe inputs to the activation function of each layer, not including the input layer.
         """
         
         # Ensure x is an ndarray (handles lists/other array-likes passed in)
@@ -194,13 +188,13 @@ class NeuralNetwork:
             Input array of shape (n, input_size), where n is the number
             of samples.
 
-        raw_output: bool
+        one_hot: bool
             Flag for if the returned prediction should be the raw network output.
     
         Returns
         -------
         np.ndarray
-            Array of shape (output_size,n) if raw_output (or size (n,) if not raw_output) containing, for each sample, the index of
+            Array of shape (n,) containing, for each sample, the index of
             the output node with the largest activation.
         """
         

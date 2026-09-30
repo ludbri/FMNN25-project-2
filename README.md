@@ -23,7 +23,7 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 
 # Results for task 8
 - Using a sigmoid function for the hidden layer and an identity function for the output layer, the loss goes below 10^-8, using the parameters: hidden layers
-- The least possible hidden layers obtained with a loss below 10^-8 is ??, with hidden layers=??, learning rate=??, decay=??, batch size ?? and with the sigmoid function for hidden layers and identity function for output layer.
+- The least possible hidden layers obtained, with a loss below 10^-8, was 10 hidden layers, using 1409 epochs, learning rate=0.1, decay=0, batch size 1 and with the sigmoid function for hidden layers and identity function for output layer.
 
 # Contributions
 Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
@@ -31,7 +31,7 @@ Everyone contributed everywhere with discussions. Areas where individuals worked
 - Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
 - Juan: helped with task 7 and generalizing the code to handle 4-bit encoding for extension task 2
 - Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
-- Tommaso: ... 
+- Tommaso: did the basis of the network solving task 1 and task 2. I could then plot Validation Accuracy vs Epoch, Training loss vs epoch,Mini-batch size vs training time,Mini-batch size vs validation accuracy. So I reapeted the loop for different batch sizes.
 
 # 
 

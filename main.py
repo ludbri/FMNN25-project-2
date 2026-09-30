@@ -11,8 +11,7 @@ boolean flags below:
 """
 
 
-from NeuralNetwork import NeuralNetwork
-import loss_activation_and_error_functions as funcs
+from NeuralNetwork import NeuralNetwork, relu, relu_derivative
 import NeuralNetworkTraining
 import Plotting
 import testing_mini_batch_sizes
@@ -23,19 +22,19 @@ import AttackDataTraining
 
 
 # Flags controlling which optional sections of the script run
-testing_mini_batch = True
-plotting_accuracy = True
+testing_mini_batch = False
+plotting_accuracy = False
 plotting_loss = True
-plot_confusion = True
+plot_confusion = False
 test_attack = True
-train_attack = True
+train_attack = False
 
 # Hyperparameters / limits for the standard training run
 epochs = 10
 minibatch_size = 32
-training_limit = 10000
-validation_limit = 1000
-test_limit = 1000
+training_limit = 50000
+validation_limit = 10000
+test_limit = 10000
 
 
 if __name__ == "__main__":
@@ -63,12 +62,8 @@ if __name__ == "__main__":
         layer_sizes=(parameters.INPUT_SIZE,
                      30,
                      parameters.OUTPUT_SIZE),
-        # activation_funcs=(funcs.relu,) * 2,
-        # activation_func_gradients=(funcs.relu_derivative,) * 2,
-        # loss_func=funcs.zero_one_loss,
-        # loss_func_gradient=funcs.zero_one_surrogate_gradient,
-        learning_rate=0.3,
-        learning_rate_decay=0.1
+                     learning_rate=0.3,
+                     learning_rate_decay=0.1
     )
     
     
@@ -136,7 +131,6 @@ if __name__ == "__main__":
 
     
     if plotting_accuracy:
-        
         # Graphs for standard run
         print("\nCreating accuracy graph...")
         Plotting.plot_validation_accuracy(standard_history)
@@ -190,5 +184,4 @@ if __name__ == "__main__":
         print("Negative Gradient")
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
-        make_attacks(network, x0, att = "negative_gradient" )
-        
+        make_attacks(network, x0, attack = "negative_gradient" )
