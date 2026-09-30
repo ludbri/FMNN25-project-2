@@ -11,13 +11,14 @@ boolean flags below:
 """
 
 
-from NeuralNetwork import NeuralNetwork, relu, relu_derivative
+from NeuralNetwork import NeuralNetwork
+import loss_activation_and_error_functions as funcs
 import NeuralNetworkTraining
 import Plotting
 import testing_mini_batch_sizes
 from dataloading import load_mnist
 import parameters
-from FNNattack import attack, make_attacks
+from FNNattack import make_attacks
 import AttackDataTraining
 
 
@@ -62,8 +63,10 @@ if __name__ == "__main__":
         layer_sizes=(parameters.INPUT_SIZE,
                      30,
                      parameters.OUTPUT_SIZE),
-        # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
-        # activation_func_gradients=(relu_derivative,) * 2,
+        # activation_funcs=(funcs.relu,) * 2,
+        # activation_func_gradients=(funcs.relu_derivative,) * 2,
+        # loss_func=funcs.zero_one_loss,
+        # loss_func_gradient=funcs.zero_one_surrogate_gradient,
         learning_rate=0.3,
         learning_rate_decay=0.1
     )
