@@ -13,7 +13,7 @@ import numpy
 numpy.set_printoptions(threshold=sys.maxsize)
 
 
-from loss_and_activation_functions import (sigmoid, sigmoid_derivative, 
+from loss_activation_and_error_functions import (sigmoid, sigmoid_derivative, 
                                            relu, relu_derivative, 
                                            ActivationFunc, ActivationFuncGrad, 
                                            LossFunc, LossFuncGrad,
