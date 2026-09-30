@@ -19,7 +19,7 @@ To do:
 
 - [ ] Extension
   -  [x] allow any number of hidden layers
-  -  [ ] compare 4 output neuron with 10 output neuron
+  -  [x] compare 4 output neuron with 10 output neuron
   -  [x] allow any activation function to be used
   -  [x] allow any loss to be used
   -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)

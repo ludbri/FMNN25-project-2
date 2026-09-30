@@ -1,0 +1,4 @@
+Python=3.13.13
+numpy=2.3.5
+tqdm=4.70.1
+matplotlib==3.10.8

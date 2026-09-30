@@ -76,7 +76,9 @@ def attack(network: NeuralNetwork,
         x += stsize * grad.T
         x = np.clip(x, 0., 1.)
 
-        if i % 1000 == 0: 
+        if i % 100 == 0 and BINARY_ENCODING:
+            print(f"target: {target}, i: {i} xsum {x.sum()}")            
+        elif i % 1000 == 0: 
             print(f"target: {target}, i: {i} xsum {x.sum()}")
     return x
 
