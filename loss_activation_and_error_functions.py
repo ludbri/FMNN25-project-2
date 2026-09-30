@@ -98,13 +98,7 @@ def relu_derivative(input: np.ndarray) -> np.ndarray:
     np.ndarray
         Gradient of the ReLU function, same shape as `output`.
     """
-    # Note: The numpy.sign function returns -1 if x < 0, 0 if x==0, 1 
-    # if x > 0. nan is returned for nan inputs.
-    # grad = np.sign(output)
-    # # add a small positive gradient for negative outputs.
-    # grad += 10**-3
-    # return grad
-    
+
     return np.where(input > 0, 1.0, 0.001)
 
 
@@ -147,7 +141,7 @@ def square_loss_gradient(y_pred: np.ndarray,
     Returns
     -------
     np.ndarray
-        The (positive) gradient of the mean squared error for each sample. TODO: should this be averaged across samples?
+        The (positive) gradient of the mean squared error for each sample. 
     """
     return y_pred - y_true
 
@@ -172,7 +166,7 @@ def _numerical_gradient(func: ActivationFunc, eps: float = 1e-06) -> ActivationF
         and returns the elementwise numerical derivative.
     '''
 
-    # TODO: numerical gradient <- Not sure is there is a way to do with output, adjusted given functions to follow input structure
+    
     def func_grad(input: np.ndarray) -> np.ndarray:
         return (func(input + eps) - func(input - eps)) / (2.0 * eps)
     return func_grad
@@ -212,50 +206,3 @@ def _numerical_loss_gradient(func: LossFunc, eps: float = 1e-6) -> LossFuncGrad:
         return grad * batch_size
 
     return func_grad
-
-
-def zero_one_loss(y_pred: np.ndarray,
-                y_true: np.ndarray) -> float:
-    """
-    Calculates the zero-one loss function between predicted and true encoded values.
-    Each sample has a loss of 0 if it is correctly predicted and 0 otherwise.
-
-    Parameters
-    ----------
-    y_pred : np.ndarray
-        Predicted values, of shape (output_size,n) for n samples.
-    y_true : np.ndarray
-        Ground-truth values, of the same shape as `y_pred`.
-
-    Returns
-    -------
-    float
-        The zero-one loss.
-    """
-    y_pred_class = np.argmax(y_pred, axis=0)
-    y_true_class = np.argmax(y_true, axis=0)
-    n_wrong = np.array(y_pred_class != y_true_class, dtype=int)
-    loss = n_wrong.sum()
-    return loss
-
-def zero_one_surrogate_gradient(y_pred: np.ndarray,
-                            y_true: np.ndarray) -> np.ndarray:
-    """
-    Calculates a leaky gradient of the zero-one loss between predicted and true values.
-    Uses a scaling of the absolute error of the one-hot encodings as surrogate function.
-
-    Parameters
-    ----------
-    y_pred : np.ndarray
-        Predicted values, of shape (output_size, n) for n samples.
-    y_true : np.ndarray
-        Ground-truth values, of the same shape as `y_pred`.
-
-    Returns
-    -------
-    np.ndarray
-        The (positive) gradient of the mean squared error for each sample. TODO: should this be averaged across samples?
-    """
-    eps = 1
-    loss = eps * (y_pred - y_true)
-    return loss

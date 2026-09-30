@@ -48,9 +48,7 @@ def attack(network: NeuralNetwork,
         # One-hot vector representing the desired (target) output 
         grad_target = np.zeros((parameters.N_CLASSES,1), dtype='d')
         grad_target[target] = 1
-    # grad_target[y] = -1   # TODO: try to remove this line! What happens? <- it does not seem to make a visual difference.
-    # When I try an attack with 4 bit encoding WITHOUT normalizing the gradient
-    # I get a much better (visually more accurate) result
+
     x = np.asarray(x).reshape(-1, network.layer_sizes[0])
 
     max_iters = 100000
@@ -76,19 +74,14 @@ def attack(network: NeuralNetwork,
         x += stsize * grad.T
         x = np.clip(x, 0., 1.)
 
-        if i % 100 == 0 and BINARY_ENCODING:
-            print(f"target: {target}, i: {i} xsum {x.sum()}")            
-        elif i % 1000 == 0: 
+        if i % 1000 == 0: 
             print(f"target: {target}, i: {i} xsum {x.sum()}")
     return x
 
 
 
 def make_attacks(network: NeuralNetwork,
-                 x: np.ndarray,
-                 fig=None,
-                 title=None,
-                 att: str = "target_attack"):
+                 x: np.ndarray):
     """
     Runs the `attack` function against every possible target class for
     a single starting image, then displays the original image alongside
@@ -101,10 +94,6 @@ def make_attacks(network: NeuralNetwork,
         The trained network to attack.
     x : np.ndarray
         A single starting input image (flattened).
-    attack: str, default="target_attack"
-        The attack chosen to be used
-        "target_attack" : specifies a targeted attack
-        "negative_gradient" : specifies taking a step in the negative gradient direction
 
     Returns
     -------
@@ -113,20 +102,9 @@ def make_attacks(network: NeuralNetwork,
     """
     xs = []
     for y_target in range(parameters.N_CLASSES):
-        if att == "target_attack":
-            xs.append(attack(network, x, y_target))
-            
-        elif att == "negative_gradient":
-            xs.append(attack_negative_gradient(network, x, y_target))
-            
-        else:
-            raise ValueError(f"Unknown attack: {att}")
+        xs.append(attack(network, x, y_target))
 
-    input_fig_is_None = fig is None
-    if input_fig_is_None:
-        fig = plt.figure(figsize=(16,10))
-
-    axes = fig.subplots(3,5)
+    fig, axes = plt.subplots(3,5, figsize=(16,10))
     axsize = int(np.sqrt(x.size))
     axes[0,2].imshow(x.reshape(axsize, axsize), cmap="Greys")
     axes[0,2].set_title(f"start, predicted: {network.predict(x)}")
@@ -139,20 +117,20 @@ def make_attacks(network: NeuralNetwork,
         axes[2,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
         axes[2,i].set_title(f"start, predicted: {network.predict(xi)}")
 
-    # fig.tight_layout()
-    if input_fig_is_None:
-        plt.show()
+    fig.tight_layout()
+
+    plt.show()
     
     
-def attack_negative_gradient(
-        network: NeuralNetwork, 
-        x: np.ndarray,
-        step_size: float = 0.1,
-        max_iters: int = 200
-    ) -> np.ndarray:
-    '''
-    Performs an untargeted attack by taking steps along the negative gradient
-    of the currently predicted class, pushing the network to change its prediction.
+def attack_gsm(network: NeuralNetwork,
+               x: np.ndarray,
+               target: int,
+               epsilon: float = 0.15) -> np.ndarray:
+    """
+    Performs a targeted Gradient Sign Method (GSM) attack on an input image.
+
+    Modifies the input `x` in a single step using the sign of the loss gradient
+    with respect to the input towards the specified target class.
 
     Parameters
     ----------
@@ -160,49 +138,38 @@ def attack_negative_gradient(
         The trained network to attack (its weights are not modified;
         only the input `x` is perturbed).
     x : np.ndarray
-        Starting input image of shape (1, input_size) or flat array.
-    step_size : float, default=0.01
-        Magnitude of perturbation added per iteration.
-    max_iters : int, default=200
-        Maximum iterations before stopping
+        Starting input image, flattened to shape matching `network.layer_sizes[0]`.
+    target : int
+        The target class index the attack tries to force the network to predict.
+    epsilon : float, optional
+        Step size magnitude (perturbation strength) controlling how far
+        pixels are shifted along the gradient sign direction. Default is 0.15.
+
     Returns
     -------
     np.ndarray
-        The perturbed input imagePerturbed input image clipped to valid range [0, 1].
-    '''
+        The perturbed input image array of shape (1, network.layer_sizes[0]),
+        clipped to the valid image range [0, 1].
+    """
+    x = np.asarray(x).copy().reshape(-1, network.layer_sizes[0])
     
-    x = np.asarray(x).copy().reshape(1, network.layer_sizes[0])
-    initial_pred = network.predict(x)[0]
+    # Target label as one-hot
+    y_target = np.zeros((parameters.N_CLASSES, 1))
+    y_target[target] = 1.0
+
+    # Forward pass
+    activations, pre_activations = network.forward(x.T)
+
+    # Backpropagate loss gradient down to input x
+    backgrad = network.loss_func_derivative(activations[-1], y_target)
+    for w, z, actgrad in zip(network.layer_weights[::-1],
+                             pre_activations[::-1],
+                             network.activation_derivatives[::-1]):
+        a_grad = backgrad * actgrad(z)
+        backgrad = w.T @ a_grad
+
+    # Move in the negative direction of the target loss gradient
+    grad_x = backgrad.T  # Shape (1, 784)
+    x_adv = x - epsilon * np.sign(grad_x)
     
-    for _ in range(max_iters):
-        current_pred = network.predict(x)[0]
-        
-        # stop once the netwrok prediction changes from initial (if before max iterations)
-        if current_pred != initial_pred:
-            break
-        
-        
-        # One-hot vector representing the current predicted class
-        y_onehot = np.zeros((parameters.N_CLASSES, 1))
-        y_onehot[current_pred] = 1.0 
-        
-        # forward pass to obtain activations
-        activations, pre_activations = network.forward(x.T)
-        
-        # compute gradient of the loss w.r.t. predicted class
-        backgrad = network.loss_func_derivative(activations[-1], y_onehot)
-        
-        # backpropagate gradient w.r.t input layer
-        for w, z, actgrad in zip(
-                network.layer_weights[::-1],
-                pre_activations[::-1],
-                network.activation_derivatives[::-1]):
-            a_grad = backgrad * actgrad(z)
-            backgrad = w.T @ a_grad
-        
-        grad_x = backgrad.T
-        
-        x += step_size * np.sign(grad_x)
-        x = np.clip(x,0.0, 1.0)
-        
-        return x
+    return np.clip(x_adv, 0.0, 1.0)
