@@ -21,7 +21,7 @@ from dataloading import load_mnist, minibatches
 assert not parameters.BINARY_ENCODING and parameters.OUTPUT_SIZE == 10, \
     "Set BINARY_ENCODING = False in parameters.py (and restart the console)."
 
-THRESHOLD = 1e-7
+THRESHOLD = 1e-8
 N_SAMPLES = 50
 
 def identity(x):

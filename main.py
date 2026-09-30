@@ -24,7 +24,7 @@ from FNNattack import attack, make_attacks
 testing_mini_batch = False
 plotting_accuracy = False
 plotting_loss = True
-plot_confusion = True
+plot_confusion = False
 test_attack = True
 
 # Hyperparameters / limits for the standard training run
@@ -33,10 +33,6 @@ minibatch_size = 32
 training_limit = 10000
 validation_limit = 1000
 test_limit = 1000
-
-# Set global parameters used across modules (network architecture constants) 
-parameters.N_CLASSES = 10
-parameters.INPUT_SIZE = 784
 
 
 if __name__ == "__main__":
@@ -66,7 +62,8 @@ if __name__ == "__main__":
                      parameters.OUTPUT_SIZE),
         # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
         # activation_func_gradients=(relu_derivative,) * 2,
-        learning_rate=0.3
+        learning_rate=0.3,
+        learning_rate_decay=0.1
     )
     
     
@@ -114,7 +111,7 @@ if __name__ == "__main__":
             batch_sizes=batch_sizes,
             epochs=3,
             training_limit=10000,
-            validation_limit=1000
+            validation_limit=1000,
         )
 
         Plotting.plot_batch_accuracy(results)

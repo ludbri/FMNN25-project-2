@@ -51,8 +51,11 @@ def minibatches(dataset: Dataset,
     x, y = dataset[0], dataset[1]
     if n is not None:
         x, y = x[:n], y[:n]
+    n = len(x) 
+    
     if batch_size is None:
         batch_size = len(x)
+        
     if shuffle:
         idxs = np.arange(len(x))
         np.random.shuffle(idxs)

@@ -21,23 +21,30 @@ def digit_to_binary(digit: int, min_bits: int = 4):
     return np.asarray(bits[::-1])
 
 
-# print("5 to bin is {}".format(digit_to_binary(5)))
+valid_binary_seq = np.array([digit_to_binary(d) for d in range(10)])
 
-def binary_to_digit(bits: np.array):
-    """Convert an array of ones and zeroes anc convert to an int
-    [0,1,0,1] -> 5
-    """
-    exp = len(bits) - 1
-    res = 0
-    for bit in bits:
-        if bit == 1:
-            res += 2**exp
-        exp-=1
+def closest_digit_from_binary(seq: np.ndarray):
+    '''
+    Returns the digit which has the smallest euclidian distance between its 
+    corresponding binary sequence and seq.
 
-    return res
+    Parameters
+    ----------
+    seq : ndarray
+        A binary sequence
+
+    Returns
+    -------
+    int
+        The digit for which its binary sequence has the smallest euclidian 
+        distance to seq.
+    '''
+    
+    distances = np.linalg.norm(valid_binary_seq - seq, axis=1)
+    return int(np.argmin(distances))
 
 # bits = np.asarray([1,0,1,1])
-# print("{} to int is {}".format(bits, binary_to_digit(bits)))
+# print("{} to int is {}".format(bits, closest_digit_from_binary(bits)))
 
 # TEST
 # for d in range(10):
