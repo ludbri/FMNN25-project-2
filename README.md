@@ -22,10 +22,13 @@ Each set is a 2-tuple of a list of image pixel data and a list of corresponding 
 - ``testing_mini_batch_sizes`` - old version of ``task8``.
 - ``AttackDataTraining`` - functions to train model using attacked data.
 
+# Results for task 8
+- Using a sigmoid function for the hidden layer and an identity function for the output layer, the loss goes below 10^-8, using the parameters: hidden layers
+- The least possible hidden layers obtained with a loss below 10^-8 is ??, with hidden layers=??, learning rate=??, decay=??, batch size ?? and with the sigmoid function for hidden layers and identity function for output layer.
 
 # Contributions
 Everyone contributed everywhere with discussions. Areas where individuals worked a bit more:
-- Anna: ... 
+- Anna: task 8, general debugging and adjustments to reduce loss and increase accuracy, documentation, file organization, binary decoding and encoding
 - Annelies: helped initial NN and SGD, intro numpy to reduce time in NN, normalization in SGD, updating to allow general activation functions (updating sigmoid+relu), train model on attacked data + new attack, initial task 8 tests
 - Juan: ... 
 - Ludwig: minibatcher, numpy-ifying learning functions, generalizing layer sizes and activation functions, first attack function and make_attacks, confusion matrix, documentation
