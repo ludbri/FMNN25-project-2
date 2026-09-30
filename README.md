@@ -1,21 +1,34 @@
 # FMNN25-project-2
 A project for solving the second project: implementing and training a neural network.
 
+Running the project requires separate downloading and extraction of the mnist.pkl dataset.
+The dataset is structured as a tuple of training, validation and test sets. 
+Each set is a 2-tuple of a list of image pixel data and a list of corresponding labels.
 
-#
-main - main file that is the only runnable file, contains parameters to determine wether to test 
 
-NeuralNetwork - contains the class for the neural network
+# File structure
 
-NeuralNetworkTraining - contains the functions for training the neural network
+- ``main`` - entrypoint. The main file that is the only runnable file. Uses flags that determine whether to test specific functionality and present particular plots.
+- ``parameters`` - defines and sets global parameters.
+- ``dataloading`` - reading data from and generating minibatches.
+- ``binary`` - functions for encoding and decoding labels as a binary representation.
+- ``NeuralNetwork`` - defines the ``NeuralNetwork`` Class, the sigmoid and ReLU activation functions and their gradients, as well as the square loss function and its gradient.
+  - The ``NeuralNetwork`` class can be of any depth and layer sizes. Each layer can use a distinct activation function and the user can provide any set of functions per layer. If the gradient is not provided, it is sampled from the function using central differences.
+- ``NeuralNetworkTraining`` - functions for training the neural network and evaluating the accuracy of its predictions on some dataset.
+- ``FNNattack`` - functions for making a single attack against the network with some target label, and a function for making an attack with each possible target label and plot the results.
+- ``Plotting`` - functions for generating plots of training performance.
+- ``task8`` - functions for searching over hyperparameters to find low training loss in few epochs.
+- ``task8_v2`` - updated version of ``task8``.
+- ``testing_mini_batch_sizes`` - old version of ``task8``.
 
-Plotting - contains functions for plotting accuracy vs epoch, loss vs epoch and mini-batch size vs training time
 
-testing_mini_batch_sizes - function for testing mini-batch size
+# Contributions
 
-To do:
+
+# To do:
 - [x] Proper documentation
-- [ ] add a requirements.txt file!
+- [ ] Add task results to readme.md
+- [x] add a requirements.txt file!
 
 - [ ] Extension
   -  [x] allow any number of hidden layers
@@ -44,7 +57,7 @@ implementation validation
 
 Nice to have
 - [x] ReLU - leaky relu gradient (small pos gradient for relu=0).
-  - [ ] Make it work.
-- [ ] Plotting confusion matrix
+  - [x] Make it work.
+- [x] Plotting confusion matrix
 
 We are not aiming to win!
