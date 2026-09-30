@@ -414,12 +414,7 @@ class NeuralNetwork:
             return outputs
         else:
             if BINARY_ENCODING:
-                #print("Shape of binary outputs: {}".format(outputs.shape))
-                bits_matrix = (outputs >= 0.5).astype(int) # (4, 1000)
-                #print("Shape of bits matris: {}".format(bits_matrix.shape))
-                
-                # print("Bits matrix", bits_matrix)
-                return np.array([binary_to_digit(bits_matrix[:, i]) for i in range(outputs.shape[1])])
+                return np.array([binary_to_digit(outputs[:, i]) for i in range(outputs.shape[1])])
 
             else:
                 # For each sample (column), return the index of the output node

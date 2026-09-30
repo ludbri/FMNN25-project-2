@@ -1,9 +1,10 @@
 
 import numpy as np
 
+
 def digit_to_binary(digit: int, min_bits: int = 4):
     """Convert a base 10 number (Int) to a np.ndarray of 1's and 0's
-    5 -> [0,1,0,1]
+    5 -> [0,1,0,1] 
     """
     n = digit
     bits = []
@@ -20,24 +21,16 @@ def digit_to_binary(digit: int, min_bits: int = 4):
         
     return np.asarray(bits[::-1])
 
+# ALL THE 4-BIT REPRESENTATION OF NUMBERS 0-9
 
-# print("5 to bin is {}".format(digit_to_binary(5)))
+codes = np.array([digit_to_binary(d) for d in range(10)])
 
 def binary_to_digit(bits: np.array):
-    """Convert an array of ones and zeroes anc convert to an int
-    [0,1,0,1] -> 5
+    """Take a np.array as input with 4 floats as bits, take the distance to all 
+    4-bit codes (0-9) and return the int value of the one with the lowest distance. 
     """
-    exp = len(bits) - 1
-    res = 0
-    for bit in bits:
-        if bit == 1:
-            res += 2**exp
-        exp-=1
-
-    return res
-
-# bits = np.asarray([1,0,1,1])
-# print("{} to int is {}".format(bits, binary_to_digit(bits)))
+    dists = np.sum((codes - bits) ** 2, axis=1)
+    return int(np.argmin(dists))
 
 # TEST
 # for d in range(10):
