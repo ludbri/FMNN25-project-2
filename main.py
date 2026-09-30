@@ -185,8 +185,10 @@ if __name__ == "__main__":
         # Final Evaluation
         corr, total = NeuralNetworkTraining.evaluate(net, validation_data)
         print(f"\nPost-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
-        
+
+
+        print("Negative Gradient")
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
-        make_attacks(network, x0, attack = "negative_gradient" )
+        make_attacks(network, x0, att = "negative_gradient" )
         

@@ -117,7 +117,7 @@ def make_attacks(network: NeuralNetwork,
             xs.append(attack(network, x, y_target))
             
         elif att == "negative_gradient":
-            xs.append(attack_negative_gradient(network, x, y_target))
+            xs.append(attack_negative_gradient(network, x))
             
         else:
             raise ValueError(f"Unknown attack: {att}")
