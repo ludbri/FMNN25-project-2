@@ -44,7 +44,7 @@ Everyone contributed everywhere with discussions. Areas where individuals worked
   -  [x] allow any activation function to be used
   -  [x] allow any loss to be used
      -  [ ] Add example
-  -  [ ] use attack to generate new data -> train network on this data -> attack network (with new attack)
+  -  [x] use attack to generate new data -> train network on this data -> attack network (with new attack)
 
 implementation validation
 - [x] Evaluate the losses at the end of each epoch, after learning all minibatches.
