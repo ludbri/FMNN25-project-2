@@ -111,7 +111,7 @@ def make_attacks(network: NeuralNetwork,
             xs.append(attack(network, x, y_target))
             
         elif att == "negative_gradient":
-            xs.append(attack_negative_gradient(network, x, y_target))
+            xs.append(attack_negative_gradient(network, x, step_size=0.01))
             
         else:
             raise ValueError(f"Unknown attack: {attack}")
@@ -128,6 +128,8 @@ def make_attacks(network: NeuralNetwork,
     for i, xi in enumerate(xs[5:]):
         axes[2,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
         axes[2,i].set_title(f"start, predicted: {network.predict(xi)}")
+        
+    print(network.predict(xs[1]))
 
     fig.tight_layout()
 
@@ -137,8 +139,8 @@ def make_attacks(network: NeuralNetwork,
 def attack_negative_gradient(
         network: NeuralNetwork, 
         x: np.ndarray,
-        step_size: float = 0.1,
-        max_iters: int = 200
+        step_size: float = 0.01,
+        max_iters: int = 10000
     ) -> np.ndarray:
     '''
     Performs an untargeted attack by taking steps along the negative gradient
@@ -194,10 +196,10 @@ def attack_negative_gradient(
         
         grad_x = backgrad.T
         
-        x += step_size * np.sign(grad_x)
+        x += step_size * np.sign(grad_x)  # * grad_x
         x = np.clip(x,0.0, 1.0)
         
-        return x
+    return x
     
     
     
