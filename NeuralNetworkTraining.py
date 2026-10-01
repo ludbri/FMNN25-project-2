@@ -109,7 +109,7 @@ def train_network(network: NeuralNetwork,
     batches_per_epoch = int(np.ceil(training_limit / minibatch_size))
 
     if use_outer_tqdm:
-        epoch_gen = tqdm.trange(epochs, desc="Training epochs")
+        epoch_gen = tqdm.trange(epochs, desc="Training epochs",position=0)
     else:
         epoch_gen = range(epochs)
 
@@ -125,7 +125,8 @@ def train_network(network: NeuralNetwork,
             batch_gen = tqdm.tqdm(batch_gen,
                                   desc="batches",
                                   total=batches_per_epoch,
-                                  leave=False)
+                                  leave=False,
+                                  position=1)
             
         # Iterate over shuffled, one-hot-encoded mini-batches for this epoch
         for x, y_onehot in batch_gen:

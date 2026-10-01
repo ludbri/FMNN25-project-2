@@ -92,12 +92,14 @@ if __name__ == "__main__":
     winners = []   # (hidden_size, epochs, final_loss, lr, batch)
     for hidden_size in hidden_sizes:
         found = []
+        best_epochs = max_epochs
         for lr in learning_rates:
             for mb in mini_batch_sizes:
                 epoch, loss, _ = train_until_threshold(
-                    train_50, hidden_size, lr, mb, max_epochs)
+                    train_50, hidden_size, lr, mb, best_epochs)
                 if epoch is not None:
                     found.append((hidden_size, epoch, loss, lr, mb))
+                    best_epochs = epoch
         if not found:
             print(f"hidden={hidden_size}: no setting reached {THRESHOLD:g}")
             break                      # smaller layers are unlikely to work
