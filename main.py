@@ -22,12 +22,13 @@ import AttackDataTraining
 
 
 # Flags controlling which optional sections of the script run
-testing_mini_batch = False
-plotting_accuracy = False
+testing_mini_batch = True
+plotting_accuracy = True
 plotting_loss = True
 plot_confusion = False
 test_attack = True
 train_attack = True
+binary_encoding = True
 
 # Hyperparameters / limits for the standard training run
 epochs = 10
@@ -58,12 +59,17 @@ if __name__ == "__main__":
     print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
     print("=" * 60)
 
+
+    if binary_encoding:
+        output_size = 4
+    else: output_size = 10
     network = NeuralNetwork(
         layer_sizes=(parameters.INPUT_SIZE,
                      30,
-                     parameters.OUTPUT_SIZE),
+                     output_size),
                      learning_rate=0.3,
-                     learning_rate_decay=0.1
+                     learning_rate_decay=0.1,
+                     binary_encoding=binary_encoding
     )
     
     
@@ -112,10 +118,12 @@ if __name__ == "__main__":
             epochs=3,
             training_limit=10000,
             validation_limit=1000,
+            binary_encoding=binary_encoding
         )
 
-        Plotting.plot_batch_accuracy(results)
-        Plotting.plot_batch_time(results)
+        label = "4-bit Encoding" if binary_encoding else "Regular Network"
+        Plotting.plot_batch_accuracy({label:results})
+        Plotting.plot_batch_time({label:results})
         
         print("\n" + "=" * 60)
         print("SUMMARY")
@@ -155,9 +163,9 @@ if __name__ == "__main__":
     if train_attack:
         # Initialize and train initial network
         input_size = training_data[0].shape[1]
-        output_size = 4 if parameters.BINARY_ENCODING else parameters.N_CLASSES
+        output_size = 4 if binary_encoding else parameters.N_CLASSES
         
-        net = NeuralNetwork(layer_sizes=(input_size, 64, output_size))
+        net = NeuralNetwork(layer_sizes=(input_size, 64, output_size), binary_encoding=binary_encoding)
         
         print("--- Initial Training ---")
         NeuralNetworkTraining.train_network(net, training_data, validation_data, epochs=3)
@@ -179,7 +187,6 @@ if __name__ == "__main__":
         # Final Evaluation
         corr, total = NeuralNetworkTraining.evaluate(net, validation_data)
         print(f"\nPost-retraining Validation Accuracy: {100.0 * corr / total:.2f}%")
-
 
         print("Negative Gradient")
         attack_image_index = 1

@@ -1,6 +1,4 @@
 import numpy as np
-
-from parameters import BINARY_ENCODING
 import binary
 import warnings
 
@@ -30,7 +28,8 @@ class NeuralNetwork:
                  loss_func: LossFunc = None,
                  loss_func_gradient: LossFuncGrad = None,
                  learning_rate: float = 0.3,
-                 learning_rate_decay: float = 0.0):
+                 learning_rate_decay: float = 0.0,
+                 binary_encoding: bool = False):
         """
         Instantiate a feed-forward neural network of the specified dimensions 
         and activation functions.Neuron layers do NOT include a bias term.
@@ -81,6 +80,7 @@ class NeuralNetwork:
         self.depth = len(layer_sizes) - 1  # Not counting the input layer
         self.learning_rate = learning_rate
         self.learning_rate_decay = learning_rate_decay
+        self.binary_encoding = binary_encoding
 
         # Weights and biases
         # index 0 is the edges before layer 1.
@@ -220,7 +220,7 @@ class NeuralNetwork:
         if raw_output:
             return outputs
         else:
-            if BINARY_ENCODING:
+            if self.binary_encoding:
                 return np.array([binary.closest_digit_from_binary(outputs[:, i]) for i in range(outputs.shape[1])])
 
             else:

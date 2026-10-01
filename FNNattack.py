@@ -9,7 +9,6 @@ from NeuralNetwork import NeuralNetwork
 import parameters
 import matplotlib.pyplot as plt
 from binary import digit_to_binary
-from parameters import BINARY_ENCODING
 
 
 def attack(network: NeuralNetwork,
@@ -41,7 +40,7 @@ def attack(network: NeuralNetwork,
     stsize = 10**-1
     x = x.copy()
 
-    if BINARY_ENCODING:
+    if network.binary_encoding:
         bits = np.asarray(digit_to_binary(target), dtype='d').reshape(-1,1) #(4,1)
         grad_target = 2.0 * bits - 1.0 #Bits that should conver to 1 become +1, bits that should become 0 are set to -1
     else:
@@ -181,14 +180,17 @@ def attack_negative_gradient(
         
         
         # One-hot vector representing the current predicted class
-        y_onehot = np.zeros((parameters.N_CLASSES, 1))
-        y_onehot[current_pred] = 1.0 
+        if network.binary_encoding:
+            y_cur = np.asarray(digit_to_binary(int(current_pred)), dtype=float).reshape(-1, 1)
+        else:
+            y_cur = np.zeros((parameters.N_CLASSES, 1))
+            y_cur[current_pred] = 1.0
         
         # forward pass to obtain activations
         activations, pre_activations = network.forward(x.T)
         
         # compute gradient of the loss w.r.t. predicted class
-        backgrad = network.loss_func_derivative(activations[-1], y_onehot)
+        backgrad = network.loss_func_derivative(activations[-1], y_cur)
         
         # backpropagate gradient w.r.t input layer
         for w, z, actgrad in zip(

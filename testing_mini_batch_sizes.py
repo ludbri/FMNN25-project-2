@@ -14,7 +14,8 @@ import parameters
 def compare_mini_batch_sizes(training_data, validation_data,
                              batch_sizes, epochs=3,
                              training_limit=10000,
-                             validation_limit=1000):
+                             validation_limit=1000,
+                             binary_encoding=False):
     """
     Trains a separate network for each given mini-batch size and
     compares their final validation accuracy and training time.
@@ -50,12 +51,18 @@ def compare_mini_batch_sizes(training_data, validation_data,
         print(f"MINI-BATCH SIZE = {batch_size}")
         print("=" * 60)
 
+        if binary_encoding:
+            output_size = 4
+        else:
+            output_size = 10
+
         # Fresh network for a fair separate experiment
         network = NeuralNetwork(
             layer_sizes=(parameters.INPUT_SIZE,
                          30,
-                         parameters.OUTPUT_SIZE),
-            learning_rate=0.3
+                         output_size),
+            learning_rate=0.3,
+            binary_encoding=binary_encoding
         )
 
         start_time = time.perf_counter()

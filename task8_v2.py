@@ -18,7 +18,7 @@ from dataloading import load_mnist, minibatches
 
 # Task 8 requires 10 output neurons, so binary encoding must be OFF.
 # (Set BINARY_ENCODING = False in parameters.py and restart the kernel.)
-assert not parameters.BINARY_ENCODING and parameters.OUTPUT_SIZE == 10, \
+assert parameters.OUTPUT_SIZE == 10, \
     "Set BINARY_ENCODING = False in parameters.py (and restart the console)."
 
 THRESHOLD = 1e-8
@@ -48,6 +48,7 @@ def train_until_threshold(train_data, hidden_size, learning_rate,
                             activation_func_gradients=(sigmoid_derivative,
                                                        identity_derivative),
                             learning_rate=learning_rate,
+                            binary_encoding=False
                             )
 
     # All 50 samples as one batch, used only to evaluate the loss

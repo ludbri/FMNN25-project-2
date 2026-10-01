@@ -13,13 +13,6 @@ from FNNattack import attack, make_attacks
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Flags controlling which optional sections of the script run
-testing_mini_batch = True
-plotting_accuracy = True
-plotting_loss = True
-plot_confusion = True
-test_attack = True
-
 # Hyperparameters / limits for the standard training run
 epochs = 10
 minibatch_size = 32
@@ -29,9 +22,6 @@ test_limit = 1000
 
 
 if __name__ == "__main__":
-
-    parameters.BINARY_ENCODING = False
-
     dataset_file = "mnist.pkl"
 
     print("Loading MNIST dataset...")
@@ -47,9 +37,9 @@ if __name__ == "__main__":
     # STANDARD RUN REGULAR NETWORK
     # --------------------------------------------------------
 
-    # print("\n" + "=" * 60)
-    # print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
-    # print("=" * 60)
+    print("\n" + "=" * 60)
+    print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
+    print("=" * 60)
 
     regular_network = NeuralNetwork(
         layer_sizes=(parameters.INPUT_SIZE,
@@ -58,7 +48,8 @@ if __name__ == "__main__":
         # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
         # activation_func_gradients=(relu_derivative,) * 2,
         learning_rate=0.3,
-        learning_rate_decay=0.1
+        learning_rate_decay=0.1,
+        binary_encoding=False
     )
     
     
@@ -87,23 +78,20 @@ if __name__ == "__main__":
     # --------------------------------------------------------
     # STANDARD RUN 4-BIT ENCODING
     # --------------------------------------------------------
-
-    parameters.BINARY_ENCODING = True
+    
 
     fourbit_network = NeuralNetwork(
             layer_sizes=(parameters.INPUT_SIZE,
                         30,
-                        parameters.OUTPUT_SIZE),
+                        4),
             # activation_funcs=(relu,) * 2,  # TODO: relu is almost learning.
             # activation_func_gradients=(relu_derivative,) * 2,
             learning_rate=0.3,
-            learning_rate_decay=0.1
+            learning_rate_decay=0.1,
+            binary_encoding=True
         )
         
         
-        # Initial test configuration.
-        
-
     print("\nStarting training on 4-bit...")
     fb_standard_history = NeuralNetworkTraining.train_network(
         fourbit_network,
@@ -137,7 +125,6 @@ if __name__ == "__main__":
 
     batch_sizes = [1, 10, 20, 50]
 
-    parameters.BINARY_ENCODING = False
     rg_results = testing_mini_batch_sizes.compare_mini_batch_sizes(
         training_data,
         validation_data,
@@ -147,7 +134,6 @@ if __name__ == "__main__":
         validation_limit=1000,
     )
 
-    parameters.BINARY_ENCODING = True
     fb_results = testing_mini_batch_sizes.compare_mini_batch_sizes(
             training_data,
             validation_data,
@@ -244,11 +230,12 @@ if __name__ == "__main__":
         ticks = list(range(parameters.N_CLASSES))
 
         datasets = (("Test", test_data), ("Validation", validation_data))
-        networks = ((label_a, network_a), (label_b, network_b))
+        networks = ((label_a, network_a, False), (label_b, network_b, True))
 
         for row, (dset_name, (images, y_true)) in enumerate(datasets):
-            for col, (net_name, network) in enumerate(networks):
+            for col, (net_name, network, binary) in enumerate(networks):
                 ax = axes[row, col]
+                # print("Output Nodes numbers are: " binary, parameters.OUTPUT_SIZE)
                 y_pred = network.predict(images)
                 counts = confusion_counts(y_true, y_pred)
 
@@ -283,5 +270,14 @@ if __name__ == "__main__":
     make_attacks(regular_network, x0, fig=subfigs[0], title="Regular Network")
     make_attacks(fourbit_network, x0, fig=subfigs[1], title="4-bit Encoding")
     plt.tight_layout()
-    plt.savefig("fnn-attack.png", dpi=150)
+    plt.savefig("target-fnn-attack.png", dpi=150)
+    plt.show()
+
+
+    fig = plt.figure(figsize=(20, 10))
+    subfigs = fig.subfigures(1, 2) 
+    make_attacks(regular_network,x0, att="negative_gradient", fig=subfigs[0], title="Regular Network")
+    make_attacks(fourbit_network,x0, att="negative_gradient", fig=subfigs[1], title="4-bit Encoding")
+    plt.tight_layout()
+    plt.savefig("negative-gradient-fnn-attack.png", dpi=150)
     plt.show()
