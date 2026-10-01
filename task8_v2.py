@@ -59,7 +59,6 @@ def train_until_threshold(train_data, hidden_size, learning_rate,
         for x, y in minibatches(train_data, batch_size=mini_batch_size,
                                 n=N_SAMPLES, one_hot=True, shuffle=True):
             network.learn_batch(x, y, epoch_count=epoch - 1)
-
         loss = network.evaluate_loss(x_all, y_all)
         if not np.isfinite(loss):        # diverged, give up on this setting
             return None, loss, network

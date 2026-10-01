@@ -28,7 +28,7 @@ plotting_loss = True
 plot_confusion = False
 test_attack = True
 train_attack = True
-binary_encoding = True
+binary_encoding = False
 
 # Hyperparameters / limits for the standard training run
 epochs = 10

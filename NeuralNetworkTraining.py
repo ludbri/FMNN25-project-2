@@ -59,7 +59,9 @@ def train_network(network: NeuralNetwork,
                   minibatch_size: int =10,
                   epochs: int =3,
                   training_limit: int = 10000, 
-                  validation_limit: int = 1000) -> HistoryDict:
+                  validation_limit: int = 1000,
+                  use_outer_tqdm: bool=True,
+                  use_inner_tqdm: bool=True) -> HistoryDict:
     """
     Trains a network for a given number of epochs using mini-batch
     gradient descent, tracking loss and validation accuracy per completed epoch.
@@ -106,18 +108,27 @@ def train_network(network: NeuralNetwork,
     # Number of batches expected per epoch, for the tqdm progress bar total
     batches_per_epoch = int(np.ceil(training_limit / minibatch_size))
 
-    for epoch in tqdm.trange(epochs, desc="Training epochs"):
+    if use_outer_tqdm:
+        epoch_gen = tqdm.trange(epochs, desc="Training epochs")
+    else:
+        epoch_gen = range(epochs)
+
+    for epoch in epoch_gen:
         batches = 0
-        
+
+        batch_gen = minibatches(training_data, 
+                                batch_size=minibatch_size,
+                                n=training_limit,
+                                one_hot=True,
+                                shuffle=True)
+        if use_inner_tqdm:
+            batch_gen = tqdm.tqdm(batch_gen,
+                                  desc="batches",
+                                  total=batches_per_epoch,
+                                  leave=False)
+            
         # Iterate over shuffled, one-hot-encoded mini-batches for this epoch
-        for x, y_onehot in tqdm.tqdm(minibatches(training_data, 
-                                                 batch_size=minibatch_size, 
-                                                 n=training_limit, 
-                                                 one_hot=True, 
-                                                 shuffle=True),
-                                     desc="batches",
-                                     total= batches_per_epoch,
-                                     leave=False):
+        for x, y_onehot in batch_gen:
             network.learn_batch(x, encode_labels(y_onehot, network.binary_encoding), epoch_count = epoch)
 
             batches += 1
