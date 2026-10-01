@@ -101,23 +101,27 @@ def plot_batch_accuracy(results, ax=None, title_prefix=None):
     -------
     None
     """
-    batch_sizes = list(results.keys())
-    accuracies = [results[b]["final_accuracy"] for b in batch_sizes]
-
     standalone = ax is None
     if standalone:
         fig, ax = plt.subplots()
 
-    ax.plot(batch_sizes, accuracies, marker="o")
+    all_batch_sizes = set()
+    for label, results in results.items():
+        batch_sizes = list(results.keys())
+        times = [results[b]["final_accuracy"] for b in batch_sizes]
+        ax.plot(batch_sizes, times, marker="o", label=label)
+        all_batch_sizes.update(batch_sizes)
+
     ax.set_xlabel("Mini-batch size")
-    ax.set_ylabel("Final Validation Accuracy (%)")
-    ax.set_title(f"{title_prefix} Batch Accuracy vs Epoch")
-    ax.set_xticks(batch_sizes)
+    ax.set_ylabel("Final Accuracy (%)")
+    ax.set_title("Final Accuracy vs Mini-batch size")
+    ax.set_xticks(sorted(all_batch_sizes))
+    ax.legend()
     ax.grid(True)
 
     if standalone:
         fig.tight_layout()
-        fig.savefig("mini_batch_vs_accuracy.png", dpi=150)
+        fig.savefig("training_time_vs_mini_batch_size.png", dpi=150)
         plt.show()
 
 # ============================================================
@@ -144,25 +148,28 @@ def plot_batch_time(results, ax=None, title_prefix=None):
     -------
     None
     """
-    batch_sizes = list(results.keys())
-    times = [results[b]["time"] for b in batch_sizes]
-
     standalone = ax is None
     if standalone:
         fig, ax = plt.subplots()
 
-    ax.plot(batch_sizes, times, marker="o")
+    all_batch_sizes = set()
+    for label, results in results.items():
+        batch_sizes = list(results.keys())
+        times = [results[b]["time"] for b in batch_sizes]
+        ax.plot(batch_sizes, times, marker="o", label=label)
+        all_batch_sizes.update(batch_sizes)
+
     ax.set_xlabel("Mini-batch size")
     ax.set_ylabel("Training Time (seconds)")
-    ax.set_title(f"{title_prefix} Batch Training Time vs Epoch")
-    ax.set_xticks(batch_sizes)
+    ax.set_title("Mini-batch size vs Training Time")
+    ax.set_xticks(sorted(all_batch_sizes))
+    ax.legend()
     ax.grid(True)
 
     if standalone:
         fig.tight_layout()
         fig.savefig("mini_batch_vs_time.png", dpi=150)
         plt.show()
-
 # ============================================================
 # GRAPH 5: Confusion Matrix
 # ============================================================

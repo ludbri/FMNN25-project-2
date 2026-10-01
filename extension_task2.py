@@ -47,9 +47,9 @@ if __name__ == "__main__":
     # STANDARD RUN REGULAR NETWORK
     # --------------------------------------------------------
 
-    print("\n" + "=" * 60)
-    print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
-    print("=" * 60)
+    # print("\n" + "=" * 60)
+    # print(f"STANDARD RUN: MINI-BATCH SIZE = {minibatch_size}")
+    # print("=" * 60)
 
     regular_network = NeuralNetwork(
         layer_sizes=(parameters.INPUT_SIZE,
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         minibatch_size=minibatch_size,
     )
 
-    print(f"Testing network on {test_limit:,} test examples...")
+    print(f"Testing regular network on {test_limit:,} test examples...")
     correct, total = NeuralNetworkTraining.evaluate(regular_network, test_data, test_limit)
     accuracy = 100.0 * correct / total
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         # Initial test configuration.
         
 
-    print("\nStarting training...")
+    print("\nStarting training on 4-bit...")
     fb_standard_history = NeuralNetworkTraining.train_network(
         fourbit_network,
         training_data,
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         minibatch_size=minibatch_size,
     )
 
-    print(f"Testing network on {test_limit:,} test examples...")
+    print(f"Testing 4-bit network on {test_limit:,} test examples...")
     correct, total = NeuralNetworkTraining.evaluate(fourbit_network, test_data, test_limit)
     accuracy = 100.0 * correct / total
 
@@ -157,17 +157,17 @@ if __name__ == "__main__":
             validation_limit=1000,
         )
 
-    # Plotting.plot_batch_accuracy(rg_results)
-    # Plotting.plot_batch_time(rg_results)
 
-    # Plotting.plot_batch_accuracy(fb_results)
-    # Plotting.plot_batch_time(fb_results)
+    batch_results = {
+        "Regular Network": rg_results,
+        "4-bit Encoding": fb_results,
+    }
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    Plotting.plot_batch_accuracy(rg_results, ax=axes[0, 0], title_prefix="Regular Network: ")
-    Plotting.plot_batch_time(rg_results, ax=axes[0, 1], title_prefix="Regular Network: ")
-    Plotting.plot_batch_accuracy(fb_results, ax=axes[1, 0], title_prefix="4-bit Encoding: ")
-    Plotting.plot_batch_time(fb_results, ax=axes[1, 1], title_prefix="4-bit Encoding: ")
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 10))
+    Plotting.plot_batch_accuracy(batch_results, ax=axes[0])
+    Plotting.plot_batch_time(batch_results,ax=axes[1])
+ 
 
     print("\n" + "=" * 60)
     print("SUMMARY")
@@ -252,7 +252,7 @@ if __name__ == "__main__":
                 y_pred = network.predict(images)
                 counts = confusion_counts(y_true, y_pred)
 
-                ax.matshow(counts, cmap='Greys')
+                ax.matshow(counts, cmap='viridis')
                 ax.set_title(f"{net_name} — {dset_name}")
                 ax.set_xticks(ticks, ticks)
                 ax.set_yticks(ticks, ticks)
@@ -283,4 +283,5 @@ if __name__ == "__main__":
     make_attacks(regular_network, x0, fig=subfigs[0], title="Regular Network")
     make_attacks(fourbit_network, x0, fig=subfigs[1], title="4-bit Encoding")
     plt.tight_layout()
+    plt.savefig("fnn-attack.png", dpi=150)
     plt.show()
