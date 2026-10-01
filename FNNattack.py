@@ -82,7 +82,7 @@ def attack(network: NeuralNetwork,
 
 def make_attacks(network: NeuralNetwork,
                  x: np.ndarray,
-                 attack: str = "target_attack"):
+                 att: str = "target_attack"):
     """
     Runs the `attack` function against every possible target class for
     a single starting image, then displays the original image alongside
@@ -107,10 +107,10 @@ def make_attacks(network: NeuralNetwork,
     """
     xs = []
     for y_target in range(parameters.N_CLASSES):
-        if attack == "target_attack":
+        if att == "target_attack":
             xs.append(attack(network, x, y_target))
             
-        elif attack == "negative_gradient":
+        elif att == "negative_gradient":
             xs.append(attack_negative_gradient(network, x, y_target))
             
         else:
