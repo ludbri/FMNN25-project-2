@@ -230,7 +230,7 @@ def zero_one_loss(y_pred: np.ndarray,
     y_pred_class = np.argmax(y_pred, axis=0)
     y_true_class = np.argmax(y_true, axis=0)
     n_wrong = np.array(y_pred_class != y_true_class, dtype=int)
-    loss = n_wrong.sum()
+    loss = n_wrong.mean()
     return loss
 
 def zero_one_surrogate_gradient(y_pred: np.ndarray,
