@@ -82,7 +82,9 @@ def attack(network: NeuralNetwork,
 
 def make_attacks(network: NeuralNetwork,
                  x: np.ndarray,
-                 att: str = "target_attack"):
+                 att: str = "target_attack",
+                fig=None,
+                title=None):
     """
     Runs the `attack` function against every possible target class for
     a single starting image, then displays the original image alongside
@@ -116,7 +118,11 @@ def make_attacks(network: NeuralNetwork,
         else:
             raise ValueError(f"Unknown attack: {attack}")
 
-    fig, axes = plt.subplots(3,5, figsize=(16,10))
+    input_fig_is_None = fig is None
+    if input_fig_is_None:
+        fig = plt.figure(figsize=(16,10))
+
+    axes = fig.subplots(3,5)
     axsize = int(np.sqrt(x.size))
     axes[0,2].imshow(x.reshape(axsize, axsize), cmap="Greys")
     axes[0,2].set_title(f"start, predicted: {network.predict(x)}")
@@ -128,12 +134,10 @@ def make_attacks(network: NeuralNetwork,
     for i, xi in enumerate(xs[5:]):
         axes[2,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
         axes[2,i].set_title(f"start, predicted: {network.predict(xi)}")
-        
-    print(network.predict(xs[1]))
 
-    fig.tight_layout()
-
-    plt.show()
+    # fig.tight_layout()
+    if input_fig_is_None:
+        plt.show()
     
     
 def attack_negative_gradient(

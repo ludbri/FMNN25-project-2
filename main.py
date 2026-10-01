@@ -27,7 +27,7 @@ plotting_accuracy = False
 plotting_loss = True
 plot_confusion = False
 test_attack = True
-train_attack = False
+train_attack = True
 
 # Hyperparameters / limits for the standard training run
 epochs = 10
@@ -184,4 +184,4 @@ if __name__ == "__main__":
         print("Negative Gradient")
         attack_image_index = 1
         x0 = training_data[0][attack_image_index]
-        make_attacks(network, x0, attack = "negative_gradient" )
+        make_attacks(network, x0, att = "negative_gradient" )
