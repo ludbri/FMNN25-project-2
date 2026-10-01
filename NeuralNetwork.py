@@ -8,9 +8,9 @@ import warnings
 # Posted by Raja Selvaraj, modified by community. See post 'Timeline' for change history
 # Retrieved 2026-09-28, License - CC BY-SA 4.0
 
-import sys
-import numpy
-numpy.set_printoptions(threshold=sys.maxsize)
+# import sys
+# import numpy
+# numpy.set_printoptions(threshold=sys.maxsize)
 
 
 from loss_activation_and_error_functions import (sigmoid, sigmoid_derivative, 
