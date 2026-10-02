@@ -81,76 +81,66 @@ def attack(network: NeuralNetwork,
 
 def make_attacks(network: NeuralNetwork,
                  x: np.ndarray,
-                 att: str = "target_attack",
-                fig=None,
-                title=None):
+                 att: str = "target_attack"):
     """
-    Runs the `attack` function against every possible target class for
-    a single starting image, then displays the original image alongside
-    all resulting adversarial examples in a grid, each labeled with the
-    network's predicted class.
-
-    Parameters
-    ----------
-    network : NeuralNetwork
-        The trained network to attack.
-    x : np.ndarray
-        A single starting input image (flattened).
-    attack: str, default="target_attack"
-        The attack chosen to be used
-        - "target_attack" : specifies a targeted attack
-        - "negative_gradient" : specifies taking a step in the negative gradient direction
-
-    Returns
-    -------
-    None
-        Displays a matplotlib figure; does not return a value.
+    Runs the specified attack against the network for a single starting image,
+    then displays the original image alongside the adversarial result(s).
     """
-    xs = []
-    for y_target in range(parameters.N_CLASSES):
-        if att == "target_attack":
-            xs.append(attack(network, x, y_target))
-            
-            fig, axes = plt.subplots(3,5, figsize=(16,10))
-            axsize = int(np.sqrt(x.size))
-            axes[0,2].imshow(x.reshape(axsize, axsize), cmap="Greys")
-            axes[0,2].set_title(f"start, predicted: {network.predict(x)}")
-            for i in (0,1,3,4):
-                axes[0,i].set_visible(False)
-            for i, xi in enumerate(xs[:5]):
-                axes[1,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
-                axes[1,i].set_title(f"start, predicted: {network.predict(xi)}")
-            for i, xi in enumerate(xs[5:]):
-                axes[2,i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
-                axes[2,i].set_title(f"start, predicted: {network.predict(xi)}")
-                
-                axes[0,1].imshow(xi.reshape(axsize, axsize), cmap="Greys")
-                axes[0,1].set_title(f"start, predicted: {network.predict(xi)}")
-            
-        elif att == "negative_gradient":
-            x_adv = attack_negative_gradient(network, x, step_size=0.01)
-            x_adv_input = x_adv.reshape(1, -1)
-            
-            axsize = int(np.sqrt(x.size))
+    axsize = int(np.sqrt(x.size))
+    x_input = x.reshape(1, -1) if x.ndim == 1 else x
 
-            fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    if att == "target_attack":
+        # 1. Collect all targeted attacks FIRST
+        xs = []
+        for y_target in range(parameters.N_CLASSES):
+            xs.append(attack(network, x_input, y_target))
 
-            axes[0].imshow(x.reshape(axsize, axsize), cmap="Greys")
-            axes[0].set_title(f"Original, predicted: {network.predict(x)[0]}")
+        # 2. Plot ONCE after all 10 examples are generated
+        fig, axes = plt.subplots(3, 5, figsize=(16, 10))
 
-            axes[1].imshow(x_adv.reshape(axsize, axsize), cmap="Greys")
-            axes[1].set_title(f"Adversarial, predicted: {network.predict(x_adv_input)[0]}")
-            
-            
-        else:
-            raise ValueError(f"Unknown attack: {attack}")
+        # Top row: original image centered
+        axes[0, 2].imshow(x.reshape(axsize, axsize), cmap="Greys")
+        axes[0, 2].set_title(f"start, predicted: {network.predict(x_input)[0]}")
+        for i in (0, 1, 3, 4):
+            axes[0, i].set_visible(False)
 
+        # Middle row: first 5 target classes (0-4)
+        for i, xi in enumerate(xs[:5]):
+            xi_input = xi.reshape(1, -1)
+            axes[1, i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
+            axes[1, i].set_title(f"predicted: {network.predict(xi_input)[0]}")
+
+        # Bottom row: next 5 target classes (5-9)
+        for i, xi in enumerate(xs[5:]):
+            xi_input = xi.reshape(1, -1)
+            axes[2, i].imshow(xi.reshape(axsize, axsize), cmap="Greys")
+            axes[2, i].set_title(f"predicted: {network.predict(xi_input)[0]}")
+
+        fig.tight_layout()
+        plt.show()
+
+    elif att == "negative_gradient":
+        # Untargeted attack runs only ONCE (no y_target loop needed)
+        x_adv = attack_negative_gradient(network, x_input, step_size=0.01)
+        x_adv_input = x_adv.reshape(1, -1)
+
+        fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+        axes[0].imshow(x.reshape(axsize, axsize), cmap="Greys")
+        axes[0].set_title(f"Original: {network.predict(x_input)[0]}")
+
+        axes[1].imshow(x_adv.reshape(axsize, axsize), cmap="Greys")
+        axes[1].set_title(f"Adversarial: {network.predict(x_adv_input)[0]}")
+
+        fig.tight_layout()
+        plt.show()
+
+    else:
+        raise ValueError(f"Unknown attack: {att}")
    
         
 
-    fig.tight_layout()
-
-    plt.show()
+    
     
     
 def attack_negative_gradient(
