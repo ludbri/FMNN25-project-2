@@ -1,28 +1,34 @@
 import numpy as np
-from FNNattack import attack
+from FNNattack import attack, attack_negative_gradient
 from NeuralNetwork import NeuralNetwork
 from NeuralNetworkTraining import train_network, evaluate
 import parameters
 
 
-def generate_attack_data(network: NeuralNetwork,
-                         training_data: tuple[np.ndarray, np.ndarray],
-                         num_samples: int = 100,
-                         target_strategy: str = 'random_sifferent'
-                         ) -> tuple[np.ndarray, np.ndarray] :
+def generate_attack_data(
+    network: NeuralNetwork,
+    training_data: tuple[np.ndarray, np.ndarray],
+    num_samples: int = 100,
+    attack_type: str = "target_attack",
+    target_strategy: str = "random_different"
+) -> tuple[np.ndarray, np.ndarray]:
     '''
-    Generates attack samples from given dataset using trained samples.
+    Generates attack samples from a given dataset using a trained network.
 
     Parameters
     ----------
     network : NeuralNetwork
-        Trained network to generate attack against
+        Trained network to generate attack against.
     training_data : tuple[np.ndarray, np.ndarray]
         Tuple of (images, labels).
     num_samples : int, optional
-        Number of images from dataset to convert into attack samples
+        Number of images from dataset to convert into attack samples.
+    attack_type : str, default="target_attack"
+        The attack method to use:
+        - "target_attack": Targeted attack toward a specific target class.
+        - "negative_gradient": Untargeted attack along the negative gradient.
     target_strategy : str, default="random_different"
-        How to pick the target class for the attack:
+        How to pick the target class for targeted attacks (ignored for "negative_gradient"):
         - "random_different": Picks a random class index != true label.
         - "next_class": Targets (true_label + 1) % N_CLASSES.
 
@@ -32,7 +38,6 @@ def generate_attack_data(network: NeuralNetwork,
         (adv_images, true_labels) containing the generated adversarial examples 
         paired with their original ground-truth labels.
     '''
-    
     images, labels = training_data
     n_total = len(images)
     num_samples = min(num_samples, n_total)
@@ -40,29 +45,33 @@ def generate_attack_data(network: NeuralNetwork,
     adv_images = []
     adv_labels = []
     
-    print(f"Generating {num_samples} adversarial examples using iterative `attack`...")
+    print(f"Generating {num_samples} adversarial examples using `{attack_type}`...")
     
     for i in range(num_samples):
         img = images[i]
         true_label = int(labels[i])
         
-        if target_strategy == 'random_different':
-            possible_targets = [c for c in range(parameters.N_CLASSES) if c != true_label]
-            target_class = int(np.random.choice(possible_targets))
+        if attack_type == "target_attack":
+            if target_strategy == 'random_different':
+                possible_targets = [c for c in range(parameters.N_CLASSES) if c != true_label]
+                target_class = int(np.random.choice(possible_targets))
+            elif target_strategy == 'next_class':
+                target_class = (true_label + 1) % parameters.N_CLASSES
+            else:
+                raise ValueError(f"Unknown target_strategy: {target_strategy}")
+                
+            perturbed_img = attack(network, img, target=target_class)
             
-        elif target_strategy == 'next_class':
-            target_class = (true_label + 1) % parameters.N_CLASSES
+        elif attack_type == "negative_gradient":
+            perturbed_img = attack_negative_gradient(network, img, step_size=0.01)
+            
         else:
-            raise ValueError(f"Unknown target_strategy: {target_strategy}")
+            raise ValueError(f"Unknown attack_type: {attack_type}")
             
-        # Generate adversarial example using the provided `attack` function
-        # Note: attack() returns shape (1, input_size)
-        perturbed_img = attack(network, img, target=target_class)
-        
         # Squeeze to match dataset shape (input_size,)
         adv_images.append(perturbed_img.reshape(-1))
         
-        # Ground-truth label remains the ORIGINAL true label so the network learns robustness
+        # Ground-truth label remains the original label for adversarial training
         adv_labels.append(true_label)
 
         if (i + 1) % 10 == 0 or (i + 1) == num_samples:
@@ -74,6 +83,7 @@ def attack_retrain(
         network: NeuralNetwork,
         training_data: tuple[np.ndarray, np.ndarray],
         validation_data: tuple[np.ndarray, np.ndarray],
+        att: str,
         num_adv_samples: int = 200,
         epochs: int = 3,
         minibatch_size: int = 10,
@@ -118,7 +128,7 @@ def attack_retrain(
         network=network,
         training_data=training_data,
         num_samples=num_adv_samples,
-        target_strategy="random_different"
+        attack_type = att
     )
 
     # Augment training dataset with original + adversarial samples
